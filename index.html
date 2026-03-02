@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Barbearia Paradise Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+          },
+          colors: {
+            dark: { 900: '#0a0a0f', 800: '#12121a', 700: '#1a1a26', 600: '#222233', 500: '#2a2a3d' },
+            lucas: { DEFAULT: '#3b82f6', light: '#60a5fa', dark: '#2563eb' },
+            jonathan: { DEFAULT: '#f59e0b', light: '#fbbf24', dark: '#d97706' },
+            tariki: { DEFAULT: '#10b981', light: '#34d399', dark: '#059669' },
+            accent: '#8b5cf6',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    * { scrollbar-width: thin; scrollbar-color: #2a2a3d #0a0a0f; }
+    body { background: #0a0a0f; }
+    .glass { background: rgba(18, 18, 26, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); }
+    .glass-card { background: rgba(26, 26, 38, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; }
+    .glass-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+    .glow-blue { box-shadow: 0 0 20px rgba(59,130,246,0.15); }
+    .glow-yellow { box-shadow: 0 0 20px rgba(245,158,11,0.15); }
+    .glow-green { box-shadow: 0 0 20px rgba(16,185,129,0.15); }
+    .glow-purple { box-shadow: 0 0 20px rgba(139,92,246,0.2); }
+    .podium-1 { animation: float 3s ease-in-out infinite; }
+    .podium-2 { animation: float 3s ease-in-out infinite 0.5s; }
+    .podium-3 { animation: float 3s ease-in-out infinite 1s; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-up { animation: fadeUp 0.6s ease forwards; }
+    .fade-up-1 { animation-delay: 0.1s; opacity: 0; }
+    .fade-up-2 { animation-delay: 0.2s; opacity: 0; }
+    .fade-up-3 { animation-delay: 0.3s; opacity: 0; }
+    .fade-up-4 { animation-delay: 0.4s; opacity: 0; }
+    .fade-up-5 { animation-delay: 0.5s; opacity: 0; }
+    .month-btn { transition: all 0.3s ease; }
+    .month-btn.active { background: rgba(139,92,246,0.3); border-color: rgba(139,92,246,0.6); color: #c4b5fd; }
+    .crown { font-size: 2rem; filter: drop-shadow(0 0 8px rgba(245,158,11,0.5)); }
+    .bar-label { font-size: 0.65rem; }
+    .tooltip-custom { position: absolute; background: rgba(10,10,15,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; pointer-events: none; z-index: 50; }
+    .progress-bar { transition: width 1s ease; }
+    .stat-number { font-variant-numeric: tabular-nums; }
+    .report-card { position: relative; overflow: hidden; }
+    .report-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .report-card.lucas::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .report-card.jonathan::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .report-card.tariki::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .report-metric { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .report-metric:last-child { border-bottom: none; }
+    .report-metric .metric-bar { height: 4px; border-radius: 2px; transition: width 0.8s ease; }
+    .best-badge { font-size: 9px; padding: 1px 6px; border-radius: 9999px; font-weight: 600; letter-spacing: 0.05em; }
+    .formula-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 500; background: rgba(139,92,246,0.15); color: #a78bfa; margin-left: 4px; }
+    .winner-glow { animation: winnerPulse 2s ease-in-out infinite; }
+    @keyframes winnerPulse { 0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.2); } 50% { box-shadow: 0 0 40px rgba(245,158,11,0.4); } }
+    .score-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; border-radius: 8px; font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
+
+    /* Mobile responsiveness */
+    @media (max-width: 640px) {
+      header > div { flex-wrap: wrap; gap: 8px; }
+      header > div > .flex:last-child { width: 100%; justify-content: center; }
+      .month-btn { padding: 6px 12px; font-size: 12px; flex: 1; text-align: center; }
+      header .font-display { font-size: 1rem; }
+      main { padding-left: 12px; padding-right: 12px; }
+      .glass-card { padding: 16px; }
+      .report-card { padding: 14px; }
+      #podium-container { height: 14rem; gap: 8px; }
+      .crown { font-size: 1.4rem; }
+      #report-section { grid-template-columns: 1fr; }
+      .score-board { flex-direction: column; gap: 8px; }
+      .score-board > div { width: 100%; }
+      .winner-glow .text-2xl { font-size: 1.25rem; }
+      .winner-glow .text-4xl { font-size: 1.75rem; }
+      #report-legend { grid-template-columns: 1fr; }
+      #revenue-split { grid-template-columns: 1fr; }
+      #executive-summary { font-size: 13px; }
+    }
+    @media (max-width: 768px) {
+      .grid.lg\:grid-cols-2 { grid-template-columns: 1fr; }
+      .grid.lg\:grid-cols-3 { grid-template-columns: 1fr; }
+      .grid.lg\:grid-cols-4 { grid-template-columns: 1fr 1fr; }
+      .grid.grid-cols-3 { grid-template-columns: 1fr !important; }
+      .grid.grid-cols-3 > div canvas { max-height: 150px; }
+      #comparison-table { font-size: 11px; }
+      #comparison-table th, #comparison-table td { padding: 6px 8px; }
+      .h-80 canvas, .h-72 canvas { min-height: 200px; }
+    }
+  </style>
+</head>
+<body class="min-h-screen text-gray-100 font-sans">
+
+  <!-- Header -->
+  <header class="glass sticky top-0 z-50 border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-purple-700 flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        </div>
+        <div>
+          <h1 class="font-display text-xl font-bold tracking-tight">Barbearia Paradise</h1>
+          <p class="text-xs text-gray-500">Dashboard Comparativo</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="setMonth('jan')" id="btn-jan" class="month-btn active px-4 py-2 rounded-lg text-sm font-medium border border-white/10 bg-white/5 cursor-pointer">Janeiro</button>
+        <button onclick="setMonth('fev')" id="btn-fev" class="month-btn px-4 py-2 rounded-lg text-sm font-medium border border-white/10 bg-white/5 cursor-pointer">Fevereiro</button>
+        <button onclick="setMonth('all')" id="btn-all" class="month-btn px-4 py-2 rounded-lg text-sm font-medium border border-white/10 bg-white/5 cursor-pointer">Ambos</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+
+    <!-- Resumo Executivo -->
+    <section id="executive-summary" class="glass-card rounded-2xl p-5 fade-up fade-up-1 border-l-4 border-accent">
+    </section>
+
+    <!-- KPI Cards -->
+    <section id="kpi-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    </section>
+
+    <!-- No-Show Alert -->
+    <section id="noshow-section" class="fade-up fade-up-2"></section>
+
+    <!-- Podium -->
+    <section class="glass-card rounded-2xl p-6 fade-up fade-up-2">
+      <h2 class="font-display text-lg font-bold mb-6 flex items-center gap-2">
+        <svg class="w-5 h-5 text-accent" fill="currentColor" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
+        Ranking de Receita
+      </h2>
+      <div id="podium-container" class="flex items-end justify-center gap-4 sm:gap-8 h-72">
+      </div>
+    </section>
+
+    <!-- Monthly Report Section -->
+    <section class="glass-card rounded-2xl p-6 fade-up fade-up-2">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="font-display text-lg font-bold flex items-center gap-2">
+          <svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Relatório Mensal
+        </h2>
+        <span class="px-3 py-1.5 rounded-lg text-[10px] font-medium border border-green-500/20 bg-green-500/10 text-green-400 flex items-center gap-1.5">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          Auto-calculado da planilha
+        </span>
+      </div>
+      <!-- Placar + Barbeiro Destaque -->
+      <div id="scoreboard-section" class="mb-6"></div>
+
+      <div id="report-section" class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      </div>
+
+      <!-- Legenda das formulas -->
+      <div class="mt-6 p-4 rounded-xl bg-white/[0.02] border border-white/5">
+        <div class="flex items-center gap-2 mb-3">
+          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Legenda — Como cada valor é calculado</p>
+        </div>
+        <div id="report-legend" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2"></div>
+      </div>
+
+      <div id="report-chart-container" class="mt-6">
+        <div class="h-72"><canvas id="reportChart"></canvas></div>
+      </div>
+    </section>
+
+    <!-- Charts Row 1 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Revenue Comparison -->
+      <section class="glass-card rounded-2xl p-6 fade-up fade-up-3">
+        <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m6 0h6m-6 0V9a2 2 0 012-2h2a2 2 0 012 2v10m6 0v-4a2 2 0 00-2-2h-2a2 2 0 00-2 2v4"/></svg>
+          Composição da Receita
+        </h2>
+        <div class="h-72"><canvas id="revenueChart"></canvas></div>
+      </section>
+
+      <!-- Monthly Trend -->
+      <section class="glass-card rounded-2xl p-6 fade-up fade-up-3">
+        <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          Evolução Mensal
+        </h2>
+        <div class="h-72"><canvas id="trendChart"></canvas></div>
+      </section>
+    </div>
+
+    <!-- Receita Avulsa vs Recorrente -->
+    <section class="glass-card rounded-2xl p-6 fade-up fade-up-3">
+      <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Receita Avulsa vs Recorrente
+      </h2>
+      <div id="revenue-split" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- Charts Row 2 -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Service Mix Radar (por familia) -->
+      <section class="glass-card rounded-2xl p-6 fade-up fade-up-4">
+        <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
+          Mix por Família
+        </h2>
+        <div class="h-72"><canvas id="radarChart"></canvas></div>
+      </section>
+
+      <!-- Subscription Breakdown -->
+      <section class="glass-card rounded-2xl p-6 fade-up fade-up-4">
+        <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8m13 0v6m-3-3h6"/></svg>
+          Assinaturas
+        </h2>
+        <div class="grid grid-cols-3 gap-4 h-72">
+          <div class="flex flex-col items-center justify-center">
+            <canvas id="donutLucas"></canvas>
+            <p class="text-xs text-blue-400 mt-2 font-medium">Lucas</p>
+          </div>
+          <div class="flex flex-col items-center justify-center">
+            <canvas id="donutJonathan"></canvas>
+            <p class="text-xs text-yellow-400 mt-2 font-medium">Jonathan</p>
+          </div>
+          <div class="flex flex-col items-center justify-center">
+            <canvas id="donutTariki"></canvas>
+            <p class="text-xs text-green-400 mt-2 font-medium">Tariki</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Services Breakdown Bar -->
+    <section class="glass-card rounded-2xl p-6 fade-up fade-up-5">
+      <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+        Detalhamento por Serviço
+      </h2>
+      <div class="h-80"><canvas id="servicesChart"></canvas></div>
+    </section>
+
+    <!-- Top Servicos -->
+    <section class="glass-card rounded-2xl p-6 fade-up fade-up-5">
+      <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L3.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z"/></svg>
+        Top 5 Serviços Mais Lucrativos
+      </h2>
+      <div id="top-services" class="space-y-3"></div>
+    </section>
+
+    <!-- Comparison Table -->
+    <section class="glass-card rounded-2xl p-6 fade-up fade-up-5">
+      <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M3 14h18M3 6h18M3 18h18"/></svg>
+        Tabela Comparativa Completa
+      </h2>
+      <div class="overflow-x-auto">
+        <table id="comparison-table" class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-white/10">
+              <th class="text-left py-3 px-4 text-gray-400 font-medium">Métrica</th>
+              <th class="text-right py-3 px-4 text-blue-400 font-medium">Lucas</th>
+              <th class="text-right py-3 px-4 text-yellow-400 font-medium">Jonathan</th>
+              <th class="text-right py-3 px-4 text-green-400 font-medium">Tariki</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Performance Bars -->
+    <section class="glass-card rounded-2xl p-6 fade-up fade-up-5">
+      <h2 class="font-display text-lg font-bold mb-6 flex items-center gap-2">
+        <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+        Performance Relativa
+      </h2>
+      <div id="performance-bars" class="space-y-6"></div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-white/5 mt-12 py-6 text-center text-xs text-gray-600">
+    Barbearia Paradise &mdash; Dashboard Comparativo &mdash; Janeiro e Fevereiro 2026
+  </footer>
+
+<script>
+// ========== DATA ==========
+const DATA = {
+  lucas: {
+    name: 'Lucas',
+    color: '#3b82f6',
+    colorLight: '#60a5fa',
+    colorBg: 'rgba(59,130,246,0.15)',
+    jan: {
+      servicos: { corte: 1655, barba: 250, acabamento: 20, escova: 0, sobNavalha: 96, sobPinca: 27, hidrCabelo: 129.5, hidrBarba: 0, depilacao: 22.5, pigmentacao: 0, selagem: 457.5, relaxamento: 0, tintura: 0, luzes: 0, platinado: 0, blackMask: 117.5 },
+      totalServicos: 2775, comissaoServicos: 1388,
+      produtosBarbearia: 719.56, comissaoProdutos: 71.96,
+      produtosBar: 0, diaNoivo: 0,
+      gorjeta: 0,
+      assinaturas: 3455.70, assBarba: 16.22, assCorte: 233.30, assCombo: 3206.18,
+      bonus: 25.98,
+      noShow: 60, noShowComissao: 30,
+      indicacaoManicure: 0, indicacaoWpp: 0,
+      totalBruto: 7036, totalLiquido: 4971
+    },
+    fev: {
+      servicos: { corte: 975, barba: 450, acabamento: 20, escova: 0, sobNavalha: 230, sobPinca: 0, hidrCabelo: 70, hidrBarba: 0, depilacao: 25, pigmentacao: 0, selagem: 90, relaxamento: 0, tintura: 0, luzes: 0, platinado: 0, blackMask: 0 },
+      totalServicos: 1860, comissaoServicos: 930,
+      produtosBarbearia: 44.90, comissaoProdutos: 4.49,
+      produtosBar: 0, diaNoivo: 0,
+      gorjeta: 0,
+      assinaturas: 2799.24, assBarba: 16.22, assCorte: 224.58, assCombo: 2558.44,
+      bonus: 0,
+      noShow: 80, noShowComissao: 40,
+      indicacaoManicure: 0, indicacaoWpp: 0,
+      totalBruto: 4784, totalLiquido: 3774
+    }
+  },
+  jonathan: {
+    name: 'Jonathan',
+    color: '#f59e0b',
+    colorLight: '#fbbf24',
+    colorBg: 'rgba(245,158,11,0.15)',
+    jan: {
+      servicos: { corte: 1300, barba: 450, acabamento: 0, escova: 0, sobNavalha: 258, sobPinca: 0, hidrCabelo: 266, hidrBarba: 70, depilacao: 22.5, pigmentacao: 27, selagem: 270, relaxamento: 0, tintura: 0, luzes: 0, platinado: 0, blackMask: 125 },
+      totalServicos: 2789, comissaoServicos: 1394,
+      produtosBarbearia: 901.98, comissaoProdutos: 113.40,
+      produtosBar: 232, diaNoivo: 0,
+      gorjeta: 0,
+      assinaturas: 4951.90, assBarba: 210.86, assCorte: 701.18, assCombo: 4039.86,
+      bonus: 107.94,
+      noShow: 40, noShowComissao: 20,
+      indicacaoManicure: 0, indicacaoWpp: 0,
+      totalBruto: 9022, totalLiquido: 6587
+    },
+    fev: {
+      servicos: { corte: 1018, barba: 200, acabamento: 0, escova: 0, sobNavalha: 92, sobPinca: 0, hidrCabelo: 0, hidrBarba: 0, depilacao: 22.5, pigmentacao: 27, selagem: 190, relaxamento: 0, tintura: 0, luzes: 0, platinado: 0, blackMask: 22.5 },
+      totalServicos: 1572, comissaoServicos: 786,
+      produtosBarbearia: 431.40, comissaoProdutos: 44.13,
+      produtosBar: 9.90, diaNoivo: 0,
+      gorjeta: 0,
+      assinaturas: 4503.80, assBarba: 257.02, assCorte: 823.44, assCombo: 3423.34,
+      bonus: 0,
+      noShow: 0, noShowComissao: 0,
+      indicacaoManicure: 0, indicacaoWpp: 0,
+      totalBruto: 6517, totalLiquido: 5334
+    }
+  },
+  tariki: {
+    name: 'Tariki',
+    color: '#10b981',
+    colorLight: '#34d399',
+    colorBg: 'rgba(16,185,129,0.15)',
+    jan: {
+      servicos: { corte: 325, barba: 50, acabamento: 120, escova: 0, sobNavalha: 150, sobPinca: 0, hidrCabelo: 61, hidrBarba: 0, depilacao: 0, pigmentacao: 0, selagem: 0, relaxamento: 0, tintura: 0, luzes: 0, platinado: 0, blackMask: 0 },
+      totalServicos: 706, comissaoServicos: 353,
+      produtosBarbearia: 139.80, comissaoProdutos: 14.88,
+      produtosBar: 9, diaNoivo: 0,
+      gorjeta: 0,
+      assinaturas: 1893.12, assBarba: 129.76, assCorte: 252.02, assCombo: 1511.34,
+      bonus: 107.94,
+      noShow: 20, noShowComissao: 10,
+      indicacaoManicure: 0, indicacaoWpp: 0,
+      totalBruto: 2876, totalLiquido: 2379
+    },
+    fev: {
+      servicos: { corte: 605, barba: 100, acabamento: 40, escova: 0, sobNavalha: 210, sobPinca: 0, hidrCabelo: 0, hidrBarba: 31.5, depilacao: 0, pigmentacao: 0, selagem: 90, relaxamento: 0, tintura: 0, luzes: 0, platinado: 0, blackMask: 0 },
+      totalServicos: 1077, comissaoServicos: 538,
+      produtosBarbearia: 239.10, comissaoProdutos: 23.91,
+      produtosBar: 0, diaNoivo: 0,
+      gorjeta: 0,
+      assinaturas: 2006.68, assBarba: 208.36, assCorte: 252.02, assCombo: 1546.30,
+      bonus: 0,
+      noShow: 0, noShowComissao: 0,
+      indicacaoManicure: 0, indicacaoWpp: 0,
+      totalBruto: 3322, totalLiquido: 2569
+    }
+  }
+};
+
+// ========== REPORT DATA (Relatório Mensal - Auto-calculado) ==========
+const REPORT_METRICS = [
+  { key: 'geral', label: 'Faturamento Geral', icon: '💰',
+    desc: 'Serviços + Produtos + Bebidas + Assinaturas + Bônus + No-Show' },
+  { key: 'produtos', label: 'Faturamento Produtos', icon: '🧴',
+    desc: 'Venda de produtos da barbearia (sem bebidas)' },
+  { key: 'quimica', label: 'Faturamento Química', icon: '🧪',
+    desc: 'Hidratação Cabelo + Hidratação Barba + Pigmentação + Selagem + Relaxamento + Tintura + Luzes + Platinado' },
+  { key: 'blackMask', label: 'Faturamento Black Mask', icon: '🖤',
+    desc: 'Serviço de black mask (depilação facial com máscara peel-off)' },
+  { key: 'diaNoivo', label: 'Faturamento Dia do Noivo', icon: '💍',
+    desc: 'Pacote especial para noivos' },
+  { key: 'bebidas', label: 'Faturamento Bebidas', icon: '🍺',
+    desc: 'Venda de produtos do bar (cervejas, drinks, etc.)' },
+  { key: 'indicacaoManicure', label: 'Indicação Manicure', icon: '💅', isQty: true,
+    desc: 'Quantidade de clientes indicados para manicure' },
+  { key: 'indicacaoWpp', label: 'Indicação WPP Cliente', icon: '📱', isQty: true,
+    desc: 'Quantidade de novos clientes indicados via WhatsApp' },
+  { key: 'depilacaoCera', label: 'Depilação Cera', icon: '✂️', isTiebreaker: true,
+    desc: '1º critério de desempate — Faturamento com depilação cera' },
+  { key: 'sobrancelha', label: 'Sobrancelha', icon: '✨', isTiebreaker: true,
+    desc: '2º critério de desempate — Sobrancelha Navalha + Sobrancelha Pinça' },
+];
+
+// Calcula relatório automaticamente a partir dos dados da planilha
+function calcReport(barber, month) {
+  const d = getMonthData(barber, month);
+  const s = d.servicos;
+  return {
+    geral: d.totalBruto,
+    produtos: d.produtosBarbearia,
+    quimica: s.hidrCabelo + s.hidrBarba + s.pigmentacao + s.selagem + s.relaxamento + s.tintura + s.luzes + s.platinado,
+    depilacaoCera: s.depilacao,
+    blackMask: s.blackMask,
+    diaNoivo: d.diaNoivo || 0,
+    bebidas: d.produtosBar,
+    indicacaoManicure: d.indicacaoManicure || 0,
+    indicacaoWpp: d.indicacaoWpp || 0,
+    sobrancelha: s.sobNavalha + s.sobPinca,
+  };
+}
+
+const BARBERS = ['lucas', 'jonathan', 'tariki'];
+const SERVICE_LABELS = {
+  corte: 'Corte', barba: 'Barba', acabamento: 'Acabamento', escova: 'Escova',
+  sobNavalha: 'Sob. Navalha', sobPinca: 'Sob. Pinça', hidrCabelo: 'Hidr. Cabelo',
+  hidrBarba: 'Hidr. Barba', depilacao: 'Depilação', pigmentacao: 'Pigmentação',
+  selagem: 'Selagem', relaxamento: 'Relaxamento', tintura: 'Tintura',
+  luzes: 'Luzes', platinado: 'Platinado', blackMask: 'Black Mask'
+};
+
+let currentMonth = 'jan';
+let charts = {};
+
+// ========== HELPERS ==========
+function fmt(v) { return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+function fmtDec(v) { return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+function getMonthData(barber, month) {
+  if (month === 'jan') return DATA[barber].jan;
+  if (month === 'fev') return DATA[barber].fev;
+  // "all" = sum both months
+  const j = DATA[barber].jan;
+  const f = DATA[barber].fev;
+  const servicos = {};
+  Object.keys(j.servicos).forEach(k => servicos[k] = j.servicos[k] + f.servicos[k]);
+  return {
+    servicos,
+    totalServicos: j.totalServicos + f.totalServicos,
+    comissaoServicos: j.comissaoServicos + f.comissaoServicos,
+    produtosBarbearia: j.produtosBarbearia + f.produtosBarbearia,
+    comissaoProdutos: j.comissaoProdutos + f.comissaoProdutos,
+    produtosBar: j.produtosBar + f.produtosBar,
+    diaNoivo: (j.diaNoivo||0) + (f.diaNoivo||0),
+    gorjeta: j.gorjeta + f.gorjeta,
+    assinaturas: j.assinaturas + f.assinaturas,
+    assBarba: j.assBarba + f.assBarba,
+    assCorte: j.assCorte + f.assCorte,
+    assCombo: j.assCombo + f.assCombo,
+    bonus: j.bonus + f.bonus,
+    noShow: j.noShow + f.noShow,
+    noShowComissao: j.noShowComissao + f.noShowComissao,
+    indicacaoManicure: (j.indicacaoManicure||0) + (f.indicacaoManicure||0),
+    indicacaoWpp: (j.indicacaoWpp||0) + (f.indicacaoWpp||0),
+    totalBruto: j.totalBruto + f.totalBruto,
+    totalLiquido: j.totalLiquido + f.totalLiquido
+  };
+}
+
+// ========== MONTH TOGGLE ==========
+function setMonth(m) {
+  currentMonth = m;
+  document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + m).classList.add('active');
+  renderAll();
+}
+
+// ========== RENDER FUNCTIONS ==========
+function renderKPIs() {
+  const section = document.getElementById('kpi-section');
+  const totals = BARBERS.map(b => ({ name: DATA[b].name, color: DATA[b].color, total: getMonthData(b, currentMonth).totalBruto, liquido: getMonthData(b, currentMonth).totalLiquido }));
+  const grandTotal = totals.reduce((s, t) => s + t.total, 0);
+  const best = totals.reduce((a, b) => a.total > b.total ? a : b);
+  const avgTicket = BARBERS.map(b => {
+    const d = getMonthData(b, currentMonth);
+    const numCortes = d.servicos.corte / 65;
+    return d.totalServicos > 0 ? (d.totalServicos / Math.max(numCortes, 1)) : 0;
+  });
+  const totalAss = BARBERS.reduce((s, b) => s + getMonthData(b, currentMonth).assinaturas, 0);
+
+  const kpis = [
+    { label: 'Receita Total Bruta', value: grandTotal, isNum: true, icon: '<path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>', gradient: 'from-purple-600 to-indigo-600' },
+    { label: 'Barbeiro do Mês', value: best.name, sub: best.total, subIsNum: true, icon: '<path d="M5 3l3.5 6L12 3l3.5 6L19 3v10c0 2-2 4-7 4s-7-2-7-4V3z"/>', gradient: 'from-yellow-600 to-orange-600' },
+    { label: 'Total Assinaturas', value: totalAss, isNum: true, icon: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8m13 0v6m-3-3h6"/>', gradient: 'from-green-600 to-emerald-600' },
+    { label: 'Receita Média/Barbeiro', value: grandTotal / 3, isNum: true, icon: '<path d="M9 7h6m0 10v-3m-3 3v-6m-3 6V7M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/>', gradient: 'from-blue-600 to-cyan-600' }
+  ];
+
+  section.innerHTML = kpis.map((kpi, i) => `
+    <div class="glass-card rounded-2xl p-5 fade-up fade-up-${i+1}">
+      <div class="flex items-start justify-between mb-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${kpi.gradient} flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">${kpi.icon}</svg>
+        </div>
+      </div>
+      <p class="text-xs text-gray-500 uppercase tracking-wider mb-1">${kpi.label}</p>
+      ${kpi.isNum
+        ? `<p class="text-2xl font-bold stat-number" data-countup="${kpi.value}" data-prefix="R$ ">R$ 0</p>`
+        : `<p class="text-2xl font-bold stat-number">${kpi.value}</p>`}
+      ${kpi.sub != null
+        ? (kpi.subIsNum
+          ? `<p class="text-xs text-gray-500 mt-1" data-countup="${kpi.sub}" data-prefix="R$ ">R$ 0</p>`
+          : `<p class="text-xs text-gray-500 mt-1">${kpi.sub}</p>`)
+        : ''}
+    </div>
+  `).join('');
+}
+
+function renderPodium() {
+  const container = document.getElementById('podium-container');
+  const ranked = BARBERS.map(b => ({
+    key: b, name: DATA[b].name, color: DATA[b].color, colorLight: DATA[b].colorLight,
+    total: getMonthData(b, currentMonth).totalBruto,
+    liquido: getMonthData(b, currentMonth).totalLiquido
+  })).sort((a, b) => b.total - a.total);
+
+  const maxTotal = ranked[0].total;
+  const positions = [
+    { idx: 1, height: '55%', order: 'order-1', label: '2' },
+    { idx: 0, height: '75%', order: 'order-2', label: '1' },
+    { idx: 2, height: '40%', order: 'order-3', label: '3' }
+  ];
+
+  container.innerHTML = positions.map((pos, i) => {
+    const b = ranked[pos.idx];
+    const isCrown = pos.idx === 0;
+    return `
+      <div class="flex flex-col items-center ${pos.order} podium-${i+1}" style="width: 30%">
+        ${isCrown ? '<div class="crown mb-1">&#128081;</div>' : '<div class="h-10"></div>'}
+        <p class="font-display font-bold text-sm mb-1" style="color: ${b.colorLight}">${b.name}</p>
+        <p class="text-xs text-gray-400 mb-2">${fmt(b.total)}</p>
+        <div class="w-full rounded-t-xl relative overflow-hidden" style="height: ${pos.height}; background: linear-gradient(to top, ${b.color}20, ${b.color}60);">
+          <div class="absolute inset-0 flex items-center justify-center">
+            <span class="font-display text-4xl font-black opacity-20">${pos.label}</span>
+          </div>
+          <div class="absolute bottom-0 left-0 right-0 h-1" style="background: ${b.color}"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderRevenueChart() {
+  const ctx = document.getElementById('revenueChart').getContext('2d');
+  if (charts.revenue) charts.revenue.destroy();
+
+  const datasets = BARBERS.map(b => {
+    const d = getMonthData(b, currentMonth);
+    return {
+      label: DATA[b].name,
+      data: [d.totalServicos, d.produtosBarbearia + d.produtosBar, d.assinaturas, d.bonus + d.noShow],
+      backgroundColor: DATA[b].color + 'cc',
+      borderColor: DATA[b].color,
+      borderWidth: 1,
+      borderRadius: 6,
+    };
+  });
+
+  charts.revenue = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: ['Serviços', 'Produtos', 'Assinaturas', 'Outros'], datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#9ca3af', font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+          titleColor: '#fff', bodyColor: '#d1d5db',
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtDec(ctx.parsed.y)}` }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 11 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', callback: v => fmt(v) } }
+      }
+    }
+  });
+}
+
+function renderTrendChart() {
+  const ctx = document.getElementById('trendChart').getContext('2d');
+  if (charts.trend) charts.trend.destroy();
+
+  charts.trend = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Janeiro', 'Fevereiro'],
+      datasets: BARBERS.map(b => ({
+        label: DATA[b].name,
+        data: [DATA[b].jan.totalBruto, DATA[b].fev.totalBruto],
+        borderColor: DATA[b].color,
+        backgroundColor: DATA[b].colorBg,
+        fill: true,
+        tension: 0.4,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        pointBackgroundColor: DATA[b].color,
+        borderWidth: 3,
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#9ca3af', font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtDec(ctx.parsed.y)}` }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280' } },
+        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', callback: v => fmt(v) }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// Service families
+const SERVICE_FAMILIES = {
+  'Básicos': ['corte', 'barba', 'acabamento', 'escova'],
+  'Químicos': ['hidrCabelo', 'hidrBarba', 'pigmentacao', 'selagem', 'relaxamento', 'tintura', 'luzes', 'platinado'],
+  'Extras': ['sobNavalha', 'sobPinca', 'depilacao', 'blackMask'],
+};
+
+function getFamilyTotal(barber, month, keys) {
+  const s = getMonthData(barber, month).servicos;
+  return keys.reduce((sum, k) => sum + (s[k] || 0), 0);
+}
+
+function renderRadarChart() {
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  if (charts.radar) charts.radar.destroy();
+
+  const familyNames = Object.keys(SERVICE_FAMILIES);
+
+  charts.radar = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: familyNames,
+      datasets: BARBERS.map(b => ({
+        label: DATA[b].name,
+        data: familyNames.map(f => getFamilyTotal(b, currentMonth, SERVICE_FAMILIES[f])),
+        borderColor: DATA[b].color,
+        backgroundColor: DATA[b].color + '30',
+        pointBackgroundColor: DATA[b].color,
+        borderWidth: 2,
+        pointRadius: 4,
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#9ca3af', font: { size: 11 } } },
+        tooltip: {
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtDec(ctx.parsed.r)}` }
+        }
+      },
+      scales: {
+        r: {
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          angleLines: { color: 'rgba(255,255,255,0.06)' },
+          pointLabels: { color: '#9ca3af', font: { size: 11, weight: 600 } },
+          ticks: { display: false },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+function renderDonutCharts() {
+  ['Lucas', 'Jonathan', 'Tariki'].forEach((name, i) => {
+    const b = BARBERS[i];
+    const canvasId = 'donut' + name;
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    if (charts[canvasId]) charts[canvasId].destroy();
+
+    const d = getMonthData(b, currentMonth);
+
+    charts[canvasId] = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Barba', 'Corte', 'Combo'],
+        datasets: [{
+          data: [d.assBarba, d.assCorte, d.assCombo],
+          backgroundColor: ['#6366f1', DATA[b].color, '#ec4899'],
+          borderColor: '#0a0a0f',
+          borderWidth: 2,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+            callbacks: { label: ctx => `${ctx.label}: ${fmtDec(ctx.parsed)}` }
+          }
+        }
+      }
+    });
+  });
+}
+
+function renderServicesChart() {
+  const ctx = document.getElementById('servicesChart').getContext('2d');
+  if (charts.services) charts.services.destroy();
+
+  const keys = Object.keys(SERVICE_LABELS).filter(k => {
+    return BARBERS.some(b => getMonthData(b, currentMonth).servicos[k] > 0);
+  });
+  const labels = keys.map(k => SERVICE_LABELS[k]);
+
+  charts.services = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: BARBERS.map(b => ({
+        label: DATA[b].name,
+        data: keys.map(k => getMonthData(b, currentMonth).servicos[k]),
+        backgroundColor: DATA[b].color + 'bb',
+        borderColor: DATA[b].color,
+        borderWidth: 1,
+        borderRadius: 4,
+      }))
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: {
+        legend: { labels: { color: '#9ca3af', font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtDec(ctx.parsed.x)}` }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', callback: v => fmt(v) } },
+        y: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+function renderTable() {
+  const tbody = document.getElementById('table-body');
+  const data = BARBERS.map(b => getMonthData(b, currentMonth));
+
+  function groupHeader(label, icon) {
+    return { label, icon, isGroup: true };
+  }
+  function subtotalRow(label, values) {
+    return { label, values: values.map(v => fmtDec(v)), bold: true, isSubtotal: true };
+  }
+
+  const rows = [
+    // Resumo
+    groupHeader('RESUMO', '📊'),
+    { label: 'Receita Bruta Total', values: data.map(d => fmtDec(d.totalBruto)), bold: true },
+    { label: 'Receita Líquida (Comissão)', values: data.map(d => fmtDec(d.totalLiquido)), bold: true },
+
+    // Servicos
+    groupHeader('SERVIÇOS', '✂️'),
+    { label: 'Serviços (Bruto)', values: data.map(d => fmtDec(d.totalServicos)) },
+    { label: 'Serviços (Comissão 50%)', values: data.map(d => fmtDec(d.comissaoServicos)) },
+    ...Object.entries(SERVICE_FAMILIES).map(([family, keys]) => {
+      const vals = data.map(d => keys.reduce((s, k) => s + (d.servicos[k] || 0), 0));
+      return { label: `  ${family}`, values: vals.map(v => fmtDec(v)), dim: true };
+    }),
+
+    // Produtos & Bebidas
+    groupHeader('PRODUTOS & BEBIDAS', '🧴'),
+    { label: 'Produtos Barbearia', values: data.map(d => fmtDec(d.produtosBarbearia)) },
+    { label: 'Produtos Bar (Bebidas)', values: data.map(d => fmtDec(d.produtosBar)) },
+    { label: 'Comissão Produtos (10%)', values: data.map(d => fmtDec(d.comissaoProdutos)) },
+    subtotalRow('Subtotal Produtos', data.map(d => d.produtosBarbearia + d.produtosBar)),
+
+    // Assinaturas
+    groupHeader('ASSINATURAS', '🔄'),
+    { label: 'Assinaturas Total', values: data.map(d => fmtDec(d.assinaturas)) },
+    { label: '  Barba Ilimitado', values: data.map(d => fmtDec(d.assBarba)) },
+    { label: '  Corte Ilimitado', values: data.map(d => fmtDec(d.assCorte)) },
+    { label: '  Combo (Corte + Barba)', values: data.map(d => fmtDec(d.assCombo)) },
+    { label: 'Bônus Assinatura (20%)', values: data.map(d => fmtDec(d.bonus)) },
+
+    // Outros
+    groupHeader('OUTROS', '📋'),
+    { label: 'No-Show (Multa)', values: data.map(d => fmtDec(d.noShow)) },
+    { label: 'Gorjeta', values: data.map(d => fmtDec(d.gorjeta)) },
+  ];
+
+  tbody.innerHTML = rows.map(row => {
+    if (row.isGroup) return `
+      <tr>
+        <td colspan="4" class="pt-4 pb-2 px-4">
+          <div class="flex items-center gap-2 border-b border-white/10 pb-1">
+            <span class="text-sm">${row.icon}</span>
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">${row.label}</span>
+          </div>
+        </td>
+      </tr>`;
+    if (row.isSubtotal) return `
+      <tr class="bg-white/[0.03]">
+        <td class="py-2 px-4 text-xs font-semibold text-gray-300">${row.label}</td>
+        <td class="py-2 px-4 text-right stat-number text-xs font-semibold text-gray-300">${row.values[0]}</td>
+        <td class="py-2 px-4 text-right stat-number text-xs font-semibold text-gray-300">${row.values[1]}</td>
+        <td class="py-2 px-4 text-right stat-number text-xs font-semibold text-gray-300">${row.values[2]}</td>
+      </tr>`;
+    const bold = row.bold ? 'font-semibold text-white' : (row.dim ? 'text-gray-500 text-xs' : 'text-gray-300');
+    return `
+      <tr class="border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors">
+        <td class="py-2 px-4 ${bold}">${row.label}</td>
+        <td class="py-2 px-4 text-right stat-number ${bold}">${row.values[0]}</td>
+        <td class="py-2 px-4 text-right stat-number ${bold}">${row.values[1]}</td>
+        <td class="py-2 px-4 text-right stat-number ${bold}">${row.values[2]}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderPerformanceBars() {
+  const container = document.getElementById('performance-bars');
+  const data = BARBERS.map(b => ({ ...getMonthData(b, currentMonth), name: DATA[b].name, color: DATA[b].color }));
+
+  const metrics = [
+    { label: 'Receita Bruta', key: 'totalBruto' },
+    { label: 'Receita Líquida', key: 'totalLiquido' },
+    { label: 'Serviços', key: 'totalServicos' },
+    { label: 'Assinaturas', key: 'assinaturas' },
+    { label: 'Produtos', key: 'produtosBarbearia' },
+  ];
+
+  container.innerHTML = metrics.map(metric => {
+    const values = data.map(d => d[metric.key]);
+    const maxVal = Math.max(...values);
+    return `
+      <div>
+        <p class="text-sm text-gray-400 mb-2 font-medium">${metric.label}</p>
+        <div class="space-y-2">
+          ${data.map((d, i) => {
+            const pct = maxVal > 0 ? (values[i] / maxVal * 100) : 0;
+            const isMax = values[i] === maxVal && maxVal > 0;
+            return `
+              <div class="flex items-center gap-3">
+                <span class="text-xs w-20 text-right font-medium" style="color: ${d.color}">${d.name}</span>
+                <div class="flex-1 h-6 rounded-full bg-white/5 overflow-hidden relative">
+                  <div class="progress-bar h-full rounded-full flex items-center justify-end pr-2" style="width: ${pct}%; background: linear-gradient(90deg, ${d.color}40, ${d.color}90);">
+                    <span class="text-[10px] font-semibold text-white/90">${fmtDec(values[i])}</span>
+                  </div>
+                </div>
+                ${isMax ? '<span class="text-yellow-400 text-xs">&#9733;</span>' : '<span class="w-3"></span>'}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ========== WINNER CALCULATION ==========
+function calcWinner(allData) {
+  const mainMetrics = REPORT_METRICS.filter(m => !m.isTiebreaker);
+  const tiebreakers = REPORT_METRICS.filter(m => m.isTiebreaker);
+
+  // Find best per main metric
+  const bests = {};
+  mainMetrics.forEach(m => {
+    let maxVal = 0, maxBarber = '';
+    allData.forEach(b => { if ((b.report[m.key] || 0) > maxVal) { maxVal = b.report[m.key]; maxBarber = b.key; } });
+    if (maxVal > 0) bests[m.key] = maxBarber;
+  });
+
+  // Count points (only main metrics)
+  const scores = {};
+  BARBERS.forEach(b => scores[b] = 0);
+  Object.values(bests).forEach(b => { if (b) scores[b]++; });
+
+  // Sort by score descending
+  const ranked = BARBERS.map(b => ({ key: b, score: scores[b] })).sort((a, b) => b.score - a.score);
+
+  // Check for tie at top
+  const topScore = ranked[0].score;
+  const tied = ranked.filter(r => r.score === topScore);
+
+  let winner = null;
+  let tiebreakUsed = null;
+
+  if (tied.length === 1) {
+    // Clear winner, no tiebreak needed
+    winner = tied[0].key;
+  } else {
+    // Apply tiebreakers sequentially
+    for (const tb of tiebreakers) {
+      let tbMax = 0, tbWinner = null;
+      tied.forEach(t => {
+        const val = allData.find(d => d.key === t.key).report[tb.key] || 0;
+        if (val > tbMax) { tbMax = val; tbWinner = t.key; }
+      });
+      if (tbWinner && tbMax > 0) {
+        // Check it's not still tied on this tiebreaker
+        const tbTied = tied.filter(t => (allData.find(d => d.key === t.key).report[tb.key] || 0) === tbMax);
+        if (tbTied.length === 1) {
+          winner = tbWinner;
+          tiebreakUsed = tb.label;
+          break;
+        }
+      }
+    }
+    // If still tied after all tiebreakers
+    if (!winner) winner = tied[0].key;
+  }
+
+  // Also compute tiebreaker bests (for badge rendering)
+  const tiebreakerBests = {};
+  tiebreakers.forEach(m => {
+    let maxVal = 0, maxBarber = '';
+    allData.forEach(b => { if ((b.report[m.key] || 0) > maxVal) { maxVal = b.report[m.key]; maxBarber = b.key; } });
+    if (maxVal > 0) tiebreakerBests[m.key] = maxBarber;
+  });
+
+  // Compute positional ranking per metric (1o, 2o, 3o)
+  const rankings = {};
+  REPORT_METRICS.forEach(m => {
+    const sorted = BARBERS.map(b => ({ key: b, val: allData.find(d => d.key === b).report[m.key] || 0 }))
+      .sort((a, b) => b.val - a.val);
+    rankings[m.key] = {};
+    sorted.forEach((s, i) => { rankings[m.key][s.key] = s.val > 0 ? i + 1 : 0; });
+  });
+
+  return { scores, ranked, winner, tiebreakUsed, bests: { ...bests, ...tiebreakerBests }, rankings, topScore, isTied: tied.length > 1 };
+}
+
+// ========== REPORT SECTION ==========
+function renderReport() {
+  const section = document.getElementById('report-section');
+  const allData = BARBERS.map(b => ({ key: b, ...DATA[b], report: calcReport(b, currentMonth) }));
+
+  const result = calcWinner(allData);
+  const { scores, winner, tiebreakUsed, bests, rankings, isTied } = result;
+
+  // Render scoreboard + winner
+  renderScoreboard(allData, scores, winner, tiebreakUsed, isTied);
+
+  section.innerHTML = allData.map(b => {
+    const colorClass = b.key;
+    const isWinner = b.key === winner;
+    const winnerBorder = isWinner ? `border-color: ${b.color}40;` : '';
+    return `
+      <div class="report-card ${colorClass} glass-card rounded-xl p-5" style="${winnerBorder}">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold" style="background: ${b.color}30; color: ${b.colorLight}">
+            ${b.name.charAt(0)}
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <p class="font-display font-bold text-sm" style="color: ${b.colorLight}">${b.name}</p>
+              ${isWinner ? '<span class="text-sm">&#128081;</span>' : ''}
+            </div>
+            <p class="text-[10px] text-gray-500 uppercase tracking-wider">${currentMonth === 'jan' ? 'Janeiro' : currentMonth === 'fev' ? 'Fevereiro' : 'Jan + Fev'} 2026 &mdash; ${scores[b.key]} pts</p>
+          </div>
+        </div>
+        ${REPORT_METRICS.map(m => {
+          const val = b.report[m.key] || 0;
+          const maxForMetric = Math.max(...allData.map(x => x.report[m.key] || 0));
+          const pct = maxForMetric > 0 ? (val / maxForMetric * 100) : 0;
+          const isBest = bests[m.key] === b.key && val > 0;
+          const rank = rankings[m.key] ? rankings[m.key][b.key] : 0;
+          const separator = m.isTiebreaker ? '<div class="border-t border-dashed border-white/10 my-2"></div>' : '';
+          const rankColors = { 1: 'bg-yellow-500/20 text-yellow-400', 2: 'bg-gray-400/15 text-gray-400', 3: 'bg-orange-800/20 text-orange-700' };
+          const rankLabels = { 1: '1o', 2: '2o', 3: '3o' };
+          const rankBadge = rank > 0 && !m.isTiebreaker ? `<span class="best-badge ${rankColors[rank] || ''}">${rankLabels[rank] || ''}</span>` : '';
+          const badge = isBest
+            ? (m.isTiebreaker
+              ? '<span class="best-badge bg-orange-500/20 text-orange-400">DESEMPATE</span>'
+              : '')
+            : '';
+          return `
+            ${separator}
+            <div class="report-metric ${m.isTiebreaker ? 'opacity-75' : ''}">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1.5 mb-1">
+                  <span class="text-[11px] text-gray-400">${m.icon} ${m.label}</span>
+                  ${rankBadge}${badge}
+                  ${m.isTiebreaker ? '<span class="formula-tag" style="background:rgba(249,115,22,0.15);color:#fb923c;">DESEMPATE</span>' : ''}
+                </div>
+                <div class="w-full bg-white/5 rounded-full h-1 mt-1">
+                  <div class="metric-bar rounded-full" style="width: ${pct}%; background: ${m.isTiebreaker ? '#f97316' : b.color};"></div>
+                </div>
+              </div>
+              <span class="text-sm font-semibold stat-number ml-3 whitespace-nowrap" style="color: ${val > 0 ? (m.isTiebreaker ? '#fb923c' : b.colorLight) : '#4b5563'}" ${val > 0 ? (m.isQty ? `data-countup="${val}"` : `data-countup="${val}" data-prefix="R$ " data-decimals="2"`) : ''}>${m.isQty ? '0' : (val > 0 ? 'R$ 0,00' : 'R$ 0,00')}</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }).join('');
+
+  // Render legend
+  const legend = document.getElementById('report-legend');
+  legend.innerHTML = REPORT_METRICS.map(m => `
+    <div class="flex items-start gap-2 py-1">
+      <span class="text-sm leading-none mt-0.5">${m.icon}</span>
+      <div>
+        <span class="text-[11px] font-semibold text-gray-300">${m.label}</span>
+        ${m.isQty ? '<span class="text-[9px] ml-1 px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400 font-medium">QTD</span>' : ''}
+        ${m.isTiebreaker ? '<span class="text-[9px] ml-1 px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-400 font-medium">DESEMPATE</span>' : ''}
+        <p class="text-[10px] text-gray-500 leading-snug mt-0.5">${m.desc}</p>
+      </div>
+    </div>
+  `).join('');
+
+  // Render report comparison chart
+  renderReportChart();
+}
+
+function renderScoreboard(allData, scores, winner, tiebreakUsed, isTied) {
+  const sb = document.getElementById('scoreboard-section');
+  const winnerData = DATA[winner];
+  const monthLabel = currentMonth === 'jan' ? 'Janeiro' : currentMonth === 'fev' ? 'Fevereiro' : 'Jan + Fev';
+  const mainCount = REPORT_METRICS.filter(m => !m.isTiebreaker).length;
+
+  // Sort barbers by score descending for the scoreboard
+  const sorted = BARBERS.map(b => ({ key: b, ...DATA[b], score: scores[b] })).sort((a, b) => b.score - a.score);
+
+  sb.innerHTML = `
+    <!-- Barbeiro Destaque Card -->
+    <div class="winner-glow glass-card rounded-2xl p-5 mb-4 border border-yellow-500/20 relative overflow-hidden">
+      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-500 via-orange-400 to-yellow-500"></div>
+      <div class="flex flex-col sm:flex-row items-center gap-4">
+        <div class="flex items-center gap-3 flex-shrink-0">
+          <div class="text-4xl">&#128081;</div>
+          <div>
+            <p class="text-[10px] text-yellow-500/70 uppercase tracking-widest font-semibold">Barbeiro Destaque</p>
+            <p class="text-xs text-gray-500">${monthLabel} 2026</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3 flex-1 justify-center sm:justify-start">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl font-black" style="background: ${winnerData.color}30; color: ${winnerData.colorLight}; border: 2px solid ${winnerData.color}60;">
+            ${winnerData.name.charAt(0)}
+          </div>
+          <div>
+            <p class="font-display text-2xl font-black" style="color: ${winnerData.colorLight}">${winnerData.name}</p>
+            <p class="text-xs text-gray-400">${scores[winner]} de ${mainCount} categorias vencidas</p>
+
+          </div>
+        </div>
+        ${isTied && tiebreakUsed ? `
+          <div class="flex-shrink-0 px-3 py-1.5 rounded-lg border border-orange-500/20 bg-orange-500/10">
+            <p class="text-[10px] text-orange-400 font-medium text-center">Decidido por desempate</p>
+            <p class="text-[9px] text-orange-300/60 text-center">${tiebreakUsed}</p>
+          </div>
+        ` : ''}
+      </div>
+    </div>
+
+    <!-- Placar Visual -->
+    <div class="score-board flex gap-3">
+      ${sorted.map((b, i) => {
+        const isWinner = b.key === winner;
+        const borderColor = isWinner ? `${b.color}60` : 'rgba(255,255,255,0.05)';
+        return `
+          <div class="flex-1 glass-card rounded-xl p-4 text-center relative" style="border-color: ${borderColor}">
+            ${isWinner ? '<div class="absolute -top-2 left-1/2 -translate-x-1/2 text-lg">&#128081;</div>' : ''}
+            <p class="font-display font-bold text-sm mb-2 ${isWinner ? 'mt-1' : ''}" style="color: ${b.colorLight}">${b.name}</p>
+            <div class="score-chip mx-auto mb-1" style="background: ${b.color}25; color: ${b.colorLight};" data-countup="${b.score}">0</div>
+            <p class="text-[10px] text-gray-500">${b.score === 1 ? 'categoria' : 'categorias'}</p>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderReportChart() {
+  const ctx = document.getElementById('reportChart').getContext('2d');
+  if (charts.report) charts.report.destroy();
+
+  const metricsToChart = REPORT_METRICS.filter(m => m.key !== 'geral' && !m.isQty && !m.isTiebreaker);
+  const labels = metricsToChart.map(m => m.label.replace('Faturamento ', '').replace('Indicação ', 'Ind. '));
+
+  charts.report = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: BARBERS.map(b => {
+        const rd = calcReport(b, currentMonth);
+        return {
+          label: DATA[b].name,
+          data: metricsToChart.map(m => rd[m.key] || 0),
+          backgroundColor: DATA[b].color + 'bb',
+          borderColor: DATA[b].color,
+          borderWidth: 1,
+          borderRadius: 5,
+        };
+      })
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#9ca3af', font: { size: 11 } } },
+        tooltip: {
+          backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtDec(ctx.parsed.y)}` }
+        }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', font: { size: 10 }, maxRotation: 45 } },
+        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', callback: v => fmt(v) } }
+      }
+    }
+  });
+}
+
+// ========== COUNT-UP ANIMATION ==========
+function animateCountUp(el, target, duration = 1200, prefix = '', suffix = '', decimals = 0) {
+  const start = 0;
+  const startTime = performance.now();
+  function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const current = start + (target - start) * easeOut(progress);
+    if (decimals > 0) {
+      el.textContent = prefix + current.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) + suffix;
+    } else {
+      el.textContent = prefix + Math.round(current).toLocaleString('pt-BR') + suffix;
+    }
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+function runCountUpAnimations() {
+  document.querySelectorAll('[data-countup]').forEach(el => {
+    const val = parseFloat(el.dataset.countup);
+    const prefix = el.dataset.prefix || '';
+    const suffix = el.dataset.suffix || '';
+    const decimals = parseInt(el.dataset.decimals || '0');
+    animateCountUp(el, val, 1200, prefix, suffix, decimals);
+  });
+}
+
+// ========== TOP SERVICES ==========
+function renderTopServices() {
+  const container = document.getElementById('top-services');
+  const totals = {};
+  const barberContrib = {};
+
+  Object.keys(SERVICE_LABELS).forEach(k => {
+    totals[k] = 0;
+    barberContrib[k] = {};
+    BARBERS.forEach(b => {
+      const val = getMonthData(b, currentMonth).servicos[k];
+      totals[k] += val;
+      barberContrib[k][b] = val;
+    });
+  });
+
+  const sorted = Object.entries(totals)
+    .filter(([, v]) => v > 0)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+
+  const maxVal = sorted.length > 0 ? sorted[0][1] : 1;
+  const medals = ['🥇', '🥈', '🥉', '4o', '5o'];
+
+  container.innerHTML = sorted.map(([key, total], i) => {
+    const pct = (total / maxVal * 100);
+    const contribs = BARBERS.map(b => {
+      const val = barberContrib[key][b];
+      const bPct = total > 0 ? (val / total * 100).toFixed(0) : 0;
+      return val > 0 ? `<span style="color:${DATA[b].colorLight}" class="text-[10px]">${DATA[b].name}: ${fmtDec(val)} (${bPct}%)</span>` : '';
+    }).filter(Boolean).join('<span class="text-gray-600 mx-1">·</span>');
+
+    return `
+      <div class="flex items-center gap-3">
+        <span class="text-lg w-8 text-center flex-shrink-0">${medals[i]}</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-semibold text-gray-200">${SERVICE_LABELS[key]}</span>
+            <span class="text-sm font-bold stat-number text-white" data-countup="${total}" data-prefix="R$ " data-decimals="2">R$ 0,00</span>
+          </div>
+          <div class="w-full bg-white/5 rounded-full h-2 mb-1">
+            <div class="h-full rounded-full bg-gradient-to-r from-amber-500/60 to-amber-400/90 progress-bar" style="width: ${pct}%"></div>
+          </div>
+          <div class="flex flex-wrap gap-x-0">${contribs}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ========== EXECUTIVE SUMMARY ==========
+function renderExecutiveSummary() {
+  const container = document.getElementById('executive-summary');
+  const allData = BARBERS.map(b => ({ key: b, ...DATA[b], report: calcReport(b, currentMonth) }));
+  const result = calcWinner(allData);
+  const { scores, winner, isTied, tiebreakUsed } = result;
+  const winnerData = DATA[winner];
+  const mainCount = REPORT_METRICS.filter(m => !m.isTiebreaker).length;
+
+  const bullets = [];
+
+  // 1. Winner statement
+  const winText = isTied && tiebreakUsed
+    ? `<strong style="color:${winnerData.colorLight}">${winnerData.name}</strong> é o Barbeiro Destaque com ${scores[winner]} de ${mainCount} categorias (decidido por desempate: ${tiebreakUsed}).`
+    : `<strong style="color:${winnerData.colorLight}">${winnerData.name}</strong> lidera com ${scores[winner]} de ${mainCount} categorias vencidas.`;
+  bullets.push(winText);
+
+  // 2. Month-over-month variation (only if single month = fev)
+  if (currentMonth === 'fev') {
+    BARBERS.forEach(b => {
+      const jan = DATA[b].jan.totalBruto;
+      const fev = DATA[b].fev.totalBruto;
+      const pct = jan > 0 ? ((fev - jan) / jan * 100).toFixed(0) : 0;
+      const arrow = pct >= 0 ? '↑' : '↓';
+      const color = pct >= 0 ? '#34d399' : '#f87171';
+      bullets.push(`<strong style="color:${DATA[b].colorLight}">${DATA[b].name}</strong>: <span style="color:${color}">${arrow} ${Math.abs(pct)}%</span> em relação a Janeiro (${fmt(jan)} → ${fmt(fev)}).`);
+    });
+  }
+
+  // 3. Top service
+  const serviceTotals = {};
+  Object.keys(SERVICE_LABELS).forEach(k => {
+    serviceTotals[k] = BARBERS.reduce((s, b) => s + getMonthData(b, currentMonth).servicos[k], 0);
+  });
+  const topService = Object.entries(serviceTotals).sort((a, b) => b[1] - a[1])[0];
+  if (topService) {
+    bullets.push(`<strong>${SERVICE_LABELS[topService[0]]}</strong> é o serviço mais lucrativo com ${fmtDec(topService[1])} no total.`);
+  }
+
+  // 4. No-show impact
+  const totalNoShow = BARBERS.reduce((s, b) => s + getMonthData(b, currentMonth).noShow, 0);
+  if (totalNoShow > 0) {
+    bullets.push(`<span style="color:#f87171">⚠ ${fmtDec(totalNoShow)}</span> em multas de no-show no período.`);
+  }
+
+  container.innerHTML = `
+    <div class="flex items-start gap-3">
+      <svg class="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      <div>
+        <p class="text-xs font-bold text-accent uppercase tracking-wider mb-2">Resumo Executivo</p>
+        <ul class="space-y-1">
+          ${bullets.map(b => `<li class="text-sm text-gray-300 leading-relaxed">• ${b}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+// ========== NO-SHOW SECTION ==========
+function renderNoShow() {
+  const container = document.getElementById('noshow-section');
+  const barberNoShow = BARBERS.map(b => {
+    const d = getMonthData(b, currentMonth);
+    return { key: b, ...DATA[b], noShow: d.noShow, total: d.totalBruto };
+  });
+  const totalNoShow = barberNoShow.reduce((s, b) => s + b.noShow, 0);
+
+  if (totalNoShow === 0) {
+    container.innerHTML = `
+      <div class="glass-card rounded-2xl p-4 border border-green-500/20 flex items-center gap-3">
+        <span class="text-2xl">✅</span>
+        <div>
+          <p class="text-sm font-semibold text-green-400">Zero No-Shows!</p>
+          <p class="text-xs text-gray-500">Nenhuma multa de no-show neste período.</p>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const maxNoShow = Math.max(...barberNoShow.map(b => b.noShow));
+
+  container.innerHTML = `
+    <div class="glass-card rounded-2xl p-5 border border-red-500/15">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-xl">🚫</span>
+        <h3 class="text-sm font-bold text-red-400">Impacto No-Show</h3>
+        <span class="ml-auto text-lg font-bold text-red-400 stat-number" data-countup="${totalNoShow}" data-prefix="R$ " data-decimals="2">R$ 0,00</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        ${barberNoShow.map(b => {
+          const pct = b.total > 0 ? (b.noShow / b.total * 100).toFixed(1) : 0;
+          const barPct = maxNoShow > 0 ? (b.noShow / maxNoShow * 100) : 0;
+          return `
+            <div class="p-3 rounded-lg bg-white/[0.02] border border-white/5">
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-medium" style="color:${b.colorLight}">${b.name}</span>
+                <span class="text-xs font-semibold text-red-400/80">${b.noShow > 0 ? fmtDec(b.noShow) : '-'}</span>
+              </div>
+              <div class="w-full bg-white/5 rounded-full h-1.5">
+                <div class="h-full rounded-full bg-red-500/60 progress-bar" style="width:${barPct}%"></div>
+              </div>
+              <p class="text-[10px] text-gray-600 mt-1">${pct}% da receita bruta</p>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ========== REVENUE SPLIT (AVULSA vs RECORRENTE) ==========
+function renderRevenueSplit() {
+  const container = document.getElementById('revenue-split');
+  container.innerHTML = BARBERS.map(b => {
+    const d = getMonthData(b, currentMonth);
+    const recorrente = d.assinaturas;
+    const avulsa = d.totalServicos + d.produtosBarbearia + d.produtosBar;
+    const outros = d.bonus + d.noShow + d.gorjeta;
+    const total = d.totalBruto;
+    const pctRec = total > 0 ? (recorrente / total * 100).toFixed(0) : 0;
+    const pctAvl = total > 0 ? (avulsa / total * 100).toFixed(0) : 0;
+    const pctOut = total > 0 ? (outros / total * 100).toFixed(0) : 0;
+
+    return `
+      <div class="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+        <div class="flex items-center gap-2 mb-3">
+          <div class="w-6 h-6 rounded-md flex items-center justify-center text-xs font-bold" style="background:${DATA[b].color}30;color:${DATA[b].colorLight}">${DATA[b].name.charAt(0)}</div>
+          <span class="font-display font-bold text-sm" style="color:${DATA[b].colorLight}">${DATA[b].name}</span>
+        </div>
+        <!-- Stacked bar -->
+        <div class="flex rounded-full h-5 overflow-hidden mb-3">
+          <div class="flex items-center justify-center text-[9px] font-bold text-white/90" style="width:${pctRec}%;background:${DATA[b].color}cc;" title="Recorrente">${pctRec}%</div>
+          <div class="flex items-center justify-center text-[9px] font-bold text-white/90" style="width:${pctAvl}%;background:${DATA[b].color}60;" title="Avulsa">${pctAvl}%</div>
+          ${parseFloat(pctOut) > 0 ? `<div class="flex items-center justify-center text-[9px] font-bold text-white/60" style="width:${pctOut}%;background:${DATA[b].color}30;" title="Outros">${pctOut}%</div>` : ''}
+        </div>
+        <div class="space-y-1.5 text-[11px]">
+          <div class="flex justify-between"><span class="text-gray-400">🔄 Recorrente</span><span class="font-semibold" style="color:${DATA[b].colorLight}" data-countup="${recorrente}" data-prefix="R$ " data-decimals="2">R$ 0</span></div>
+          <div class="flex justify-between"><span class="text-gray-400">⚡ Avulsa</span><span class="font-semibold text-gray-300" data-countup="${avulsa}" data-prefix="R$ " data-decimals="2">R$ 0</span></div>
+          ${outros > 0 ? `<div class="flex justify-between"><span class="text-gray-400">📋 Outros</span><span class="font-semibold text-gray-500" data-countup="${outros}" data-prefix="R$ " data-decimals="2">R$ 0</span></div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderAll() {
+  renderExecutiveSummary();
+  renderKPIs();
+  renderNoShow();
+  renderPodium();
+  renderReport();
+  renderRevenueSplit();
+  renderRevenueChart();
+  renderTrendChart();
+  renderRadarChart();
+  renderDonutCharts();
+  renderServicesChart();
+  renderTopServices();
+  renderTable();
+  renderPerformanceBars();
+  // Trigger count-up after DOM update
+  requestAnimationFrame(() => runCountUpAnimations());
+}
+
+// ========== INIT ==========
+document.addEventListener('DOMContentLoaded', () => {
+  Chart.defaults.font.family = 'Inter, sans-serif';
+  renderAll();
+});
+</script>
+</body>
+</html>

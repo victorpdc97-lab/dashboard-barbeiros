@@ -1927,9 +1927,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Default to latest month
   currentMonth = availableMonths.length > 0 ? availableMonths[availableMonths.length - 1] : 'jan';
 
-  // Initial render with hardcoded data → hide skeleton
-  renderAll();
+  // Show content BEFORE rendering (Chart.js needs visible canvases to measure dimensions)
   hideSkeleton();
+  renderAll();
 
   // After first render + animations complete, disable fade-up to prevent flash on re-render
   setTimeout(() => document.body.classList.add('loaded'), 800);

@@ -270,17 +270,17 @@
           <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8m13 0v6m-3-3h6"/></svg>
           Assinaturas
         </h2>
-        <div class="grid grid-cols-3 gap-4 h-72">
-          <div class="flex flex-col items-center justify-center">
-            <canvas id="donutLucas"></canvas>
+        <div class="grid grid-cols-3 gap-4" style="height:250px">
+          <div class="flex flex-col items-center justify-center overflow-hidden" style="max-height:250px">
+            <div style="position:relative;width:100%;max-height:210px"><canvas id="donutLucas"></canvas></div>
             <p class="text-xs text-blue-400 mt-2 font-medium">Lucas</p>
           </div>
-          <div class="flex flex-col items-center justify-center">
-            <canvas id="donutJonathan"></canvas>
+          <div class="flex flex-col items-center justify-center overflow-hidden" style="max-height:250px">
+            <div style="position:relative;width:100%;max-height:210px"><canvas id="donutJonathan"></canvas></div>
             <p class="text-xs text-yellow-400 mt-2 font-medium">Jonathan</p>
           </div>
-          <div class="flex flex-col items-center justify-center">
-            <canvas id="donutTariki"></canvas>
+          <div class="flex flex-col items-center justify-center overflow-hidden" style="max-height:250px">
+            <div style="position:relative;width:100%;max-height:210px"><canvas id="donutTariki"></canvas></div>
             <p class="text-xs text-green-400 mt-2 font-medium">Tariki</p>
           </div>
         </div>
@@ -824,7 +824,7 @@ function renderDonutCharts() {
         }]
       },
       options: {
-        responsive: true, maintainAspectRatio: false,
+        responsive: true, maintainAspectRatio: true,
         cutout: '60%',
         plugins: {
           legend: { display: false },

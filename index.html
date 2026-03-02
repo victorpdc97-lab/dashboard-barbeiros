@@ -47,6 +47,13 @@
     .fade-up-3 { animation-delay: 0.3s; opacity: 0; }
     .fade-up-4 { animation-delay: 0.4s; opacity: 0; }
     .fade-up-5 { animation-delay: 0.5s; opacity: 0; }
+    /* After first render, disable fade animations to prevent flash on re-render */
+    body.loaded .fade-up { animation: none; opacity: 1; }
+    body.loaded .fade-up-1,
+    body.loaded .fade-up-2,
+    body.loaded .fade-up-3,
+    body.loaded .fade-up-4,
+    body.loaded .fade-up-5 { animation: none; opacity: 1; }
     .month-btn { transition: all 0.3s ease; }
     .month-btn.active { background: rgba(139,92,246,0.3); border-color: rgba(139,92,246,0.6); color: #c4b5fd; }
     .crown { font-size: 2rem; filter: drop-shadow(0 0 8px rgba(245,158,11,0.5)); }
@@ -1923,6 +1930,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Initial render with hardcoded data → hide skeleton
   renderAll();
   hideSkeleton();
+
+  // After first render + animations complete, disable fade-up to prevent flash on re-render
+  setTimeout(() => document.body.classList.add('loaded'), 800);
 
   // First live data load
   await refreshData();

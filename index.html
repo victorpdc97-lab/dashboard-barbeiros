@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#8b5cf6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Barbearia Paradise Dashboard</title>
@@ -11,18 +11,17 @@
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%238b5cf6'/><text x='50' y='68' font-size='55' text-anchor='middle' fill='white'>✂</text></svg>">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
-            display: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
+            display: ['Space Grotesk', 'sans-serif'],
           },
           colors: {
-            dark: { 900: '#000000', 800: '#0a0a0a', 700: '#111111', 600: '#1a1a1a', 500: '#222222' },
+            dark: { 900: '#0a0a0f', 800: '#12121a', 700: '#1a1a26', 600: '#222233', 500: '#2a2a3d' },
             lucas: { DEFAULT: '#3b82f6', light: '#60a5fa', dark: '#2563eb' },
             jonathan: { DEFAULT: '#f59e0b', light: '#fbbf24', dark: '#d97706' },
             tariki: { DEFAULT: '#10b981', light: '#34d399', dark: '#059669' },
@@ -33,68 +32,63 @@
     }
   </script>
   <style>
-    * { scrollbar-width: thin; scrollbar-color: #1a1a1a #000; }
-    body { background: #000; }
-
-    /* Resend-style cards */
-    .glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); }
-    .glass-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); transition: border-color 0.2s ease; }
-    .glass-card:hover { border-color: rgba(255,255,255,0.08); }
-
-    /* No glows — removed glow-blue/yellow/green/purple */
-
-    /* No float animation — podium is static */
-
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-    .fade-up { animation: fadeUp 0.4s ease forwards; }
-    .fade-up-1 { animation-delay: 0.05s; opacity: 0; }
-    .fade-up-2 { animation-delay: 0.1s; opacity: 0; }
-    .fade-up-3 { animation-delay: 0.15s; opacity: 0; }
-    .fade-up-4 { animation-delay: 0.2s; opacity: 0; }
-    .fade-up-5 { animation-delay: 0.25s; opacity: 0; }
-    body.loaded .fade-up,
+    * { scrollbar-width: thin; scrollbar-color: #2a2a3d #0a0a0f; }
+    body { background: #0a0a0f; }
+    .glass { background: rgba(18, 18, 26, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); }
+    .glass-card { background: rgba(26, 26, 38, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease; }
+    .glass-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+    .glow-blue { box-shadow: 0 0 20px rgba(59,130,246,0.15); }
+    .glow-yellow { box-shadow: 0 0 20px rgba(245,158,11,0.15); }
+    .glow-green { box-shadow: 0 0 20px rgba(16,185,129,0.15); }
+    .glow-purple { box-shadow: 0 0 20px rgba(139,92,246,0.2); }
+    .podium-1 { animation: float 3s ease-in-out infinite; }
+    .podium-2 { animation: float 3s ease-in-out infinite 0.5s; }
+    .podium-3 { animation: float 3s ease-in-out infinite 1s; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-up { animation: fadeUp 0.6s ease forwards; }
+    .fade-up-1 { animation-delay: 0.1s; opacity: 0; }
+    .fade-up-2 { animation-delay: 0.2s; opacity: 0; }
+    .fade-up-3 { animation-delay: 0.3s; opacity: 0; }
+    .fade-up-4 { animation-delay: 0.4s; opacity: 0; }
+    .fade-up-5 { animation-delay: 0.5s; opacity: 0; }
+    /* After first render, disable fade animations to prevent flash on re-render */
+    body.loaded .fade-up { animation: none; opacity: 1; }
     body.loaded .fade-up-1,
     body.loaded .fade-up-2,
     body.loaded .fade-up-3,
     body.loaded .fade-up-4,
     body.loaded .fade-up-5 { animation: none; opacity: 1; }
-
-    /* Month buttons — monochrome */
-    .month-btn { transition: all 0.2s ease; }
-    .month-btn.active { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: #fff; }
-
-    .crown { font-size: 1.5rem; }
+    .month-btn { transition: all 0.3s ease; }
+    .month-btn.active { background: rgba(139,92,246,0.3); border-color: rgba(139,92,246,0.6); color: #c4b5fd; }
+    .crown { font-size: 2rem; filter: drop-shadow(0 0 8px rgba(245,158,11,0.5)); }
     .bar-label { font-size: 0.65rem; }
-    .tooltip-custom { position: absolute; background: rgba(0,0,0,0.95); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 12px; pointer-events: none; z-index: 50; }
+    .tooltip-custom { position: absolute; background: rgba(10,10,15,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; pointer-events: none; z-index: 50; }
     .progress-bar { transition: width 1s ease; }
-    .stat-number { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
-
-    /* Report cards — thin top line only */
+    .stat-number { font-variant-numeric: tabular-nums; }
     .report-card { position: relative; overflow: hidden; }
-    .report-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; }
-    .report-card.lucas::before { background: #3b82f6; }
-    .report-card.jonathan::before { background: #f59e0b; }
-    .report-card.tariki::before { background: #10b981; }
-    .report-metric { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .report-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .report-card.lucas::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+    .report-card.jonathan::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .report-card.tariki::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .report-metric { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
     .report-metric:last-child { border-bottom: none; }
-    .report-metric .metric-bar { height: 3px; border-radius: 2px; transition: width 0.8s ease; }
+    .report-metric .metric-bar { height: 4px; border-radius: 2px; transition: width 0.8s ease; }
     .best-badge { font-size: 9px; padding: 1px 6px; border-radius: 9999px; font-weight: 600; letter-spacing: 0.05em; }
-    .formula-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 500; background: rgba(255,255,255,0.06); color: #888; margin-left: 4px; }
-
-    /* Winner — static, no pulse */
-    .winner-glow { }
-    .score-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; border-radius: 8px; font-weight: 700; font-size: 16px; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
-
-    /* Live dot — static green, no pulse */
-    .live-dot { }
-    .var-badge { display: inline-flex; align-items: center; gap: 2px; padding: 1px 6px; border-radius: 6px; font-size: 10px; font-weight: 600; white-space: nowrap; font-family: 'JetBrains Mono', monospace; }
-    .var-up { background: rgba(16,185,129,0.1); color: #34d399; }
-    .var-down { background: rgba(248,113,113,0.1); color: #f87171; }
+    .formula-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-weight: 500; background: rgba(139,92,246,0.15); color: #a78bfa; margin-left: 4px; }
+    .winner-glow { animation: winnerPulse 2s ease-in-out infinite; }
+    @keyframes winnerPulse { 0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.2); } 50% { box-shadow: 0 0 40px rgba(245,158,11,0.4); } }
+    .score-chip { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; height: 28px; border-radius: 8px; font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
+    .live-dot { animation: livePulse 2s ease-in-out infinite; }
+    @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .var-badge { display: inline-flex; align-items: center; gap: 2px; padding: 1px 6px; border-radius: 6px; font-size: 10px; font-weight: 600; white-space: nowrap; }
+    .var-up { background: rgba(16,185,129,0.15); color: #34d399; }
+    .var-down { background: rgba(248,113,113,0.15); color: #f87171; }
 
     /* KPI tooltip */
     .kpi-info { position: relative; cursor: help; }
-    .kpi-info .kpi-tooltip { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.95); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #999; white-space: nowrap; z-index: 60; transition: opacity 0.2s, visibility 0.2s; pointer-events: none; }
-    .kpi-info .kpi-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(255,255,255,0.08); }
+    .kpi-info .kpi-tooltip { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: rgba(10,10,15,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #d1d5db; white-space: nowrap; z-index: 60; transition: opacity 0.2s, visibility 0.2s; pointer-events: none; }
+    .kpi-info .kpi-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(255,255,255,0.1); }
     .kpi-info:hover .kpi-tooltip { visibility: visible; opacity: 1; }
 
     /* Refresh button */
@@ -103,19 +97,23 @@
     .refresh-spin { animation: spin 1s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+    /* Table best highlight */
+    .table-best { position: relative; }
+    .table-best::after { content: ''; position: absolute; inset: 0; border-radius: 4px; pointer-events: none; }
+
     /* Month switch animation */
-    main { transition: opacity 0.2s ease; }
+    main { transition: opacity 0.25s ease; }
     main.switching { opacity: 0.3; }
 
-    /* Scroll-to-top — monochrome */
-    #scroll-top { position: fixed; bottom: 24px; right: 24px; z-index: 90; width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #666; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; visibility: hidden; transition: all 0.2s ease; }
+    /* Scroll-to-top */
+    #scroll-top { position: fixed; bottom: 24px; right: 24px; z-index: 90; width: 40px; height: 40px; border-radius: 12px; background: rgba(139,92,246,0.3); border: 1px solid rgba(139,92,246,0.4); color: #c4b5fd; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; visibility: hidden; transition: all 0.3s ease; backdrop-filter: blur(8px); }
     #scroll-top.visible { opacity: 1; visibility: visible; }
-    #scroll-top:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    #scroll-top:hover { background: rgba(139,92,246,0.5); transform: translateY(-2px); }
 
     /* Barber filter chips */
-    .barber-chip { cursor: pointer; transition: all 0.2s ease; opacity: 0.4; border: 1px solid transparent; }
-    .barber-chip.active { opacity: 1; border-color: rgba(255,255,255,0.1); }
-    .barber-chip:hover { opacity: 0.7; }
+    .barber-chip { cursor: pointer; transition: all 0.2s ease; opacity: 0.5; border: 1px solid transparent; }
+    .barber-chip.active { opacity: 1; border-color: currentColor; }
+    .barber-chip:hover { opacity: 0.85; }
 
     /* Mobile responsiveness */
     @media (max-width: 640px) {
@@ -127,7 +125,7 @@
       .glass-card { padding: 16px; }
       .report-card { padding: 14px; }
       #podium-container { height: 14rem; gap: 8px; }
-      .crown { font-size: 1.2rem; }
+      .crown { font-size: 1.4rem; }
       #report-section { grid-template-columns: 1fr; }
       .score-board { flex-direction: column; gap: 8px; }
       .score-board > div { width: 100%; }
@@ -152,26 +150,26 @@
 <body class="min-h-screen text-gray-100 font-sans">
 
   <!-- Header -->
-  <header class="glass sticky top-0 z-50 border-b border-white/[0.04]">
+  <header class="glass sticky top-0 z-50 border-b border-white/5">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-8 h-8 rounded-lg bg-white/[0.06] border border-white/[0.06] flex items-center justify-center">
-          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14.121 14.121A3 3 0 009.88 9.88m4.242 4.242L4.93 19.07m9.192-4.95a3 3 0 00-4.243-4.242m4.243 4.243L19.07 4.93M4.93 19.07A10 10 0 1019.07 4.93 10 10 0 004.93 19.07z"/></svg>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-accent to-purple-700 flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
         </div>
         <div>
-          <h1 class="font-display text-sm font-semibold tracking-tight text-white">Barbearia Paradise</h1>
-          <p class="text-[11px] text-gray-600">Dashboard Comparativo</p>
+          <h1 class="font-display text-xl font-bold tracking-tight">Barbearia Paradise</h1>
+          <p class="text-xs text-gray-500">Dashboard Comparativo</p>
         </div>
       </div>
       <div class="flex items-center gap-2 flex-wrap">
         <div id="barber-filter" class="flex items-center gap-1.5"></div>
         <div class="w-px h-5 bg-white/10 mx-1 hidden sm:block"></div>
         <div id="month-buttons" class="flex items-center gap-2 flex-wrap"></div>
-        <div id="live-indicator" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium border border-white/[0.06] bg-white/[0.02] text-gray-600">
+        <div id="live-indicator" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-medium border border-gray-700 bg-gray-800/50 text-gray-500">
           <span class="w-1.5 h-1.5 rounded-full bg-gray-600"></span>
           Offline
         </div>
-        <button id="refresh-btn" onclick="manualRefresh()" class="refresh-btn flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-medium border border-white/[0.06] bg-white/[0.03] text-gray-500 hover:text-gray-300 hover:border-white/10" title="Atualizar dados agora">
+        <button id="refresh-btn" onclick="manualRefresh()" class="refresh-btn flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-medium border border-white/10 bg-white/5 text-gray-400 hover:text-white hover:border-accent/40" title="Atualizar dados agora">
           <svg id="refresh-icon" class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
           <span id="refresh-label">Atualizar</span>
         </button>
@@ -179,10 +177,10 @@
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-12">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
 
     <!-- Resumo Executivo -->
-    <section id="executive-summary" class="glass-card rounded-2xl p-5 fade-up fade-up-1 border-l-2 border-white/10">
+    <section id="executive-summary" class="glass-card rounded-2xl p-5 fade-up fade-up-1 border-l-4 border-accent">
     </section>
 
     <!-- KPI Cards -->
@@ -194,8 +192,8 @@
 
     <!-- Podium -->
     <section class="glass-card rounded-2xl p-6 fade-up fade-up-2">
-      <h2 class="font-display text-sm font-semibold text-gray-300 mb-6 flex items-center gap-2">
-        <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
+      <h2 class="font-display text-lg font-bold mb-6 flex items-center gap-2">
+        <svg class="w-5 h-5 text-accent" fill="currentColor" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
         Ranking de Receita
       </h2>
       <div id="podium-container" class="flex items-end justify-center gap-4 sm:gap-8 h-72">
@@ -205,13 +203,13 @@
     <!-- Monthly Report Section -->
     <section class="glass-card rounded-2xl p-6 fade-up fade-up-2">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="font-display text-sm font-semibold text-gray-300 flex items-center gap-2">
-          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <h2 class="font-display text-lg font-bold flex items-center gap-2">
+          <svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
           Relatório Mensal
         </h2>
-        <span class="px-3 py-1.5 rounded-lg text-[10px] font-medium border border-white/[0.06] bg-white/[0.03] text-gray-500 flex items-center gap-1.5">
+        <span class="px-3 py-1.5 rounded-lg text-[10px] font-medium border border-green-500/20 bg-green-500/10 text-green-400 flex items-center gap-1.5">
           <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          Auto-calculado
+          Auto-calculado da planilha
         </span>
       </div>
       <!-- Placar + Barbeiro Destaque -->
@@ -221,7 +219,7 @@
       </div>
 
       <!-- Legenda das formulas -->
-      <div class="mt-6 p-4 rounded-xl bg-white/[0.01] border border-white/[0.04]">
+      <div class="mt-6 p-4 rounded-xl bg-white/[0.02] border border-white/5">
         <div class="flex items-center gap-2 mb-3">
           <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Legenda — Como cada valor é calculado</p>
@@ -235,11 +233,11 @@
     </section>
 
     <!-- Charts Row 1 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Revenue Comparison -->
       <section class="glass-card rounded-2xl p-6 fade-up fade-up-3">
-        <h2 class="font-display text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m6 0h6m-6 0V9a2 2 0 012-2h2a2 2 0 012 2v10m6 0v-4a2 2 0 00-2-2h-2a2 2 0 00-2 2v4"/></svg>
+        <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6m6 0h6m-6 0V9a2 2 0 012-2h2a2 2 0 012 2v10m6 0v-4a2 2 0 00-2-2h-2a2 2 0 00-2 2v4"/></svg>
           Composição da Receita
         </h2>
         <div class="h-72" style="position:relative"><canvas id="revenueChart"></canvas></div>
@@ -247,8 +245,8 @@
 
       <!-- Monthly Trend -->
       <section class="glass-card rounded-2xl p-6 fade-up fade-up-3">
-        <h2 class="font-display text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
           Evolução Mensal
         </h2>
         <div class="h-72" style="position:relative"><canvas id="trendChart"></canvas></div>
@@ -257,8 +255,8 @@
 
     <!-- Receita Avulsa vs Recorrente -->
     <section class="glass-card rounded-2xl p-6 fade-up fade-up-3">
-      <h2 class="font-display text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         Receita Avulsa vs Recorrente
       </h2>
       <div id="revenue-split" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
@@ -266,19 +264,19 @@
 
     <!-- Comissão Individual -->
     <section class="glass-card rounded-2xl p-6 fade-up fade-up-3">
-      <h2 class="font-display text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         Comissão Individual — Quanto cada um leva pra casa
       </h2>
       <div id="commission-section" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
     </section>
 
     <!-- Charts Row 2 -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Service Mix Radar (por familia) -->
       <section class="glass-card rounded-2xl p-6 fade-up fade-up-4">
-        <h2 class="font-display text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
+        <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07"/></svg>
           Mix por Família
         </h2>
         <div class="h-72" style="position:relative"><canvas id="radarChart"></canvas></div>
@@ -286,8 +284,8 @@
 
       <!-- Subscription Breakdown -->
       <section class="glass-card rounded-2xl p-6 fade-up fade-up-4">
-        <h2 class="font-display text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8m13 0v6m-3-3h6"/></svg>
+        <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+          <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8m13 0v6m-3-3h6"/></svg>
           Assinaturas
         </h2>
         <div class="grid grid-cols-3 gap-4" style="height:250px">
@@ -309,8 +307,8 @@
 
     <!-- Services Breakdown Bar -->
     <section class="glass-card rounded-2xl p-6 fade-up fade-up-5">
-      <h2 class="font-display text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+      <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
         Detalhamento por Serviço
       </h2>
       <div class="h-80" style="position:relative"><canvas id="servicesChart"></canvas></div>
@@ -318,8 +316,8 @@
 
     <!-- Top Servicos -->
     <section class="glass-card rounded-2xl p-6 fade-up fade-up-5">
-      <h2 class="font-display text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L3.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z"/></svg>
+      <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.957a1 1 0 00.95.69h4.162c.969 0 1.371 1.24.588 1.81l-3.37 2.448a1 1 0 00-.364 1.118l1.287 3.957c.3.921-.755 1.688-1.54 1.118l-3.37-2.448a1 1 0 00-1.176 0l-3.37 2.448c-.784.57-1.838-.197-1.539-1.118l1.287-3.957a1 1 0 00-.364-1.118L3.063 9.384c-.783-.57-.38-1.81.588-1.81h4.162a1 1 0 00.95-.69l1.286-3.957z"/></svg>
         Top 5 Serviços Mais Lucrativos
       </h2>
       <div id="top-services" class="space-y-3"></div>
@@ -327,8 +325,8 @@
 
     <!-- Comparison Table -->
     <section class="glass-card rounded-2xl p-6 fade-up fade-up-5">
-      <h2 class="font-display text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M3 14h18M3 6h18M3 18h18"/></svg>
+      <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h18M3 14h18M3 6h18M3 18h18"/></svg>
         Tabela Comparativa Completa
       </h2>
       <div class="overflow-x-auto">
@@ -348,8 +346,8 @@
 
     <!-- Performance Bars -->
     <section class="glass-card rounded-2xl p-6 fade-up fade-up-5">
-      <h2 class="font-display text-sm font-semibold text-gray-300 mb-6 flex items-center gap-2">
-        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+      <h2 class="font-display text-lg font-bold mb-6 flex items-center gap-2">
+        <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
         Performance Relativa
       </h2>
       <div id="performance-bars" class="space-y-6"></div>
@@ -357,8 +355,8 @@
 
     <!-- Ranking Histórico -->
     <section class="glass-card rounded-2xl p-6 fade-up fade-up-5">
-      <h2 class="font-display text-sm font-semibold text-gray-300 mb-4 flex items-center gap-2">
-        <svg class="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
+      <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5m14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>
         Ranking Mensal Histórico
       </h2>
       <div id="history-ranking"></div>
@@ -372,8 +370,8 @@
   </button>
 
   <!-- Footer -->
-  <footer class="border-t border-white/[0.04] mt-16 py-8 text-center text-[11px] text-gray-700">
-    Barbearia Paradise <span class="text-gray-800 mx-1">/</span> <span id="footer-period">2026</span>
+  <footer class="border-t border-white/5 mt-12 py-6 text-center text-xs text-gray-600">
+    Barbearia Paradise &mdash; Dashboard Comparativo &mdash; <span id="footer-period">2026</span>
   </footer>
 
 <script>
@@ -659,21 +657,21 @@ function renderKPIs() {
   }
 
   const kpis = [
-    { label: 'Receita Total Bruta', tooltip: 'Soma da receita bruta de todos os barbeiros (serviços + produtos + assinaturas + outros)', value: grandTotal, isNum: true, variation: varTotal, icon: '<path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>' },
-    { label: 'Barbeiro do Mês', tooltip: 'Barbeiro com maior receita bruta no período selecionado', value: best.name, sub: best.total, subIsNum: true, icon: '<path d="M5 3l3.5 6L12 3l3.5 6L19 3v10c0 2-2 4-7 4s-7-2-7-4V3z"/>' },
-    { label: 'Total Assinaturas', tooltip: 'Receita total de planos de assinatura (barba + corte + combo)', value: totalAss, isNum: true, variation: varAss, icon: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8m13 0v6m-3-3h6"/>' },
-    { label: 'Receita Média/Barbeiro', tooltip: 'Receita bruta total dividida pelo numero de barbeiros (3)', value: grandTotal / 3, isNum: true, variation: varAvg, icon: '<path d="M9 7h6m0 10v-3m-3 3v-6m-3 6V7M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/>' }
+    { label: 'Receita Total Bruta', tooltip: 'Soma da receita bruta de todos os barbeiros (serviços + produtos + assinaturas + outros)', value: grandTotal, isNum: true, variation: varTotal, icon: '<path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>', gradient: 'from-purple-600 to-indigo-600' },
+    { label: 'Barbeiro do Mês', tooltip: 'Barbeiro com maior receita bruta no período selecionado', value: best.name, sub: best.total, subIsNum: true, icon: '<path d="M5 3l3.5 6L12 3l3.5 6L19 3v10c0 2-2 4-7 4s-7-2-7-4V3z"/>', gradient: 'from-yellow-600 to-orange-600' },
+    { label: 'Total Assinaturas', tooltip: 'Receita total de planos de assinatura (barba + corte + combo)', value: totalAss, isNum: true, variation: varAss, icon: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8m13 0v6m-3-3h6"/>', gradient: 'from-green-600 to-emerald-600' },
+    { label: 'Receita Média/Barbeiro', tooltip: 'Receita bruta total dividida pelo numero de barbeiros (3)', value: grandTotal / 3, isNum: true, variation: varAvg, icon: '<path d="M9 7h6m0 10v-3m-3 3v-6m-3 6V7M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/>', gradient: 'from-blue-600 to-cyan-600' }
   ];
 
   section.innerHTML = kpis.map((kpi, i) => `
     <div class="glass-card rounded-2xl p-5 fade-up fade-up-${i+1}">
       <div class="flex items-start justify-between mb-3">
-        <div class="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.04] flex items-center justify-center">
-          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">${kpi.icon}</svg>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${kpi.gradient} flex items-center justify-center">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">${kpi.icon}</svg>
         </div>
       </div>
       <div class="flex items-center gap-2 mb-1">
-        <p class="text-[11px] text-gray-600 uppercase tracking-wider">${kpi.label}</p>
+        <p class="text-xs text-gray-500 uppercase tracking-wider">${kpi.label}</p>
         ${kpi.tooltip ? `<span class="kpi-info"><svg class="w-3 h-3 text-gray-600 hover:text-gray-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span class="kpi-tooltip">${kpi.tooltip}</span></span>` : ''}
         ${kpi.variation != null ? varBadgeHtml(kpi.variation) : ''}
       </div>
@@ -747,7 +745,7 @@ function renderRevenueChart() {
       plugins: {
         legend: { labels: { color: '#9ca3af', font: { size: 11 } } },
         tooltip: {
-          backgroundColor: 'rgba(0,0,0,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+          backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
           titleColor: '#fff', bodyColor: '#d1d5db',
           callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtDec(ctx.parsed.y)}` }
         }
@@ -787,7 +785,7 @@ function renderTrendChart() {
       plugins: {
         legend: { labels: { color: '#9ca3af', font: { size: 11 } } },
         tooltip: {
-          backgroundColor: 'rgba(0,0,0,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+          backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
           callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtDec(ctx.parsed.y)}` }
         }
       },
@@ -872,7 +870,7 @@ function renderDonutCharts() {
         datasets: [{
           data: [d.assBarba, d.assCorte, d.assCombo],
           backgroundColor: ['#6366f1', DATA[b].color, '#ec4899'],
-          borderColor: '#000',
+          borderColor: '#0a0a0f',
           borderWidth: 2,
         }]
       },
@@ -882,7 +880,7 @@ function renderDonutCharts() {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(0,0,0,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+            backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
             callbacks: { label: ctx => `${ctx.label}: ${fmtDec(ctx.parsed)}` }
           }
         }
@@ -919,7 +917,7 @@ function renderServicesChart() {
       plugins: {
         legend: { labels: { color: '#9ca3af', font: { size: 11 } } },
         tooltip: {
-          backgroundColor: 'rgba(0,0,0,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+          backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
           callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtDec(ctx.parsed.x)}` }
         }
       },
@@ -1240,8 +1238,8 @@ function renderScoreboard(allData, scores, winner, tiebreakUsed, isTied) {
 
   sb.innerHTML = `
     <!-- Barbeiro Destaque Card -->
-    <div class="winner-glow glass-card rounded-2xl p-5 mb-4 border border-white/[0.06] relative overflow-hidden">
-      <div class="absolute top-0 left-0 right-0 h-px bg-white/10"></div>
+    <div class="winner-glow glass-card rounded-2xl p-5 mb-4 border border-yellow-500/20 relative overflow-hidden">
+      <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-500 via-orange-400 to-yellow-500"></div>
       <div class="flex flex-col sm:flex-row items-center gap-4">
         <div class="flex items-center gap-3 flex-shrink-0">
           <div class="text-4xl">&#128081;</div>
@@ -1315,7 +1313,7 @@ function renderReportChart() {
       plugins: {
         legend: { labels: { color: '#9ca3af', font: { size: 11 } } },
         tooltip: {
-          backgroundColor: 'rgba(0,0,0,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+          backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
           callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtDec(ctx.parsed.y)}` }
         }
       },
@@ -1456,9 +1454,9 @@ function renderExecutiveSummary() {
 
   container.innerHTML = `
     <div class="flex items-start gap-3">
-      <svg class="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+      <svg class="w-5 h-5 text-accent flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
       <div>
-        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Resumo Executivo</p>
+        <p class="text-xs font-bold text-accent uppercase tracking-wider mb-2">Resumo Executivo</p>
         <ul class="space-y-1">
           ${bullets.map(b => `<li class="text-sm text-gray-300 leading-relaxed">• ${b}</li>`).join('')}
         </ul>
@@ -1758,7 +1756,7 @@ async function loadLiveData() {
   const indicator = document.getElementById('live-indicator');
   if (indicator) {
     indicator.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-yellow-500 live-dot"></span> Conectando...';
-    indicator.className = indicator.className.replace('border-white/[0.06] bg-white/[0.02] text-gray-600', 'border-white/10 bg-white/[0.04] text-gray-400');
+    indicator.className = indicator.className.replace('border-gray-700 bg-gray-800/50 text-gray-500', 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400');
   }
 
   let anySuccess = false;
@@ -1837,12 +1835,12 @@ async function loadLiveData() {
     const timeStr = lastUpdateTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     if (indicator) {
       indicator.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-green-500 live-dot"></span> Live · ' + timeStr;
-      indicator.className = indicator.className.replace('border-white/10 bg-white/[0.04] text-gray-400', 'border-white/10 bg-white/[0.04] text-gray-400');
+      indicator.className = indicator.className.replace('border-yellow-500/30 bg-yellow-500/10 text-yellow-400', 'border-green-500/30 bg-green-500/10 text-green-400');
     }
   } else {
     if (indicator) {
       indicator.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-600"></span> Offline';
-      indicator.className = indicator.className.replace('border-white/10 bg-white/[0.04] text-gray-400', 'border-white/[0.06] bg-white/[0.02] text-gray-600');
+      indicator.className = indicator.className.replace('border-yellow-500/30 bg-yellow-500/10 text-yellow-400', 'border-gray-700 bg-gray-800/50 text-gray-500');
     }
   }
 
@@ -1914,7 +1912,7 @@ function showToast(message) {
 
   const toast = document.createElement('div');
   toast.id = 'toast-notification';
-  toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:100;padding:10px 20px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#999;font-size:12px;font-weight:500;transition:opacity 0.4s;display:flex;align-items:center;gap:6px;';
+  toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:100;padding:10px 20px;border-radius:12px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:#34d399;font-size:12px;font-weight:600;backdrop-filter:blur(12px);transition:opacity 0.4s;display:flex;align-items:center;gap:6px;';
   toast.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> ' + message;
   document.body.appendChild(toast);
   setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);

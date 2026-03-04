@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,9 +32,73 @@
     }
   </script>
   <style>
-    * { scrollbar-width: thin; scrollbar-color: #2a2a3d #0a0a0f; }
-    body { background: #0a0a0f; }
-    .glass { background: rgba(18, 18, 26, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); }
+    /* ========== CSS VARIABLES ========== */
+    :root {
+      --bg-body: #0a0a0f;
+      --bg-glass: rgba(18, 18, 26, 0.8);
+      --bg-glass-card: rgba(26, 26, 38, 0.6);
+      --bg-glass-hover: rgba(255,255,255,0.12);
+      --border-glass: rgba(255,255,255,0.06);
+      --border-subtle: rgba(255,255,255,0.05);
+      --border-hover: rgba(255,255,255,0.12);
+      --bg-skeleton: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+      --bg-muted: rgba(255,255,255,0.02);
+      --bg-row-hover: rgba(255,255,255,0.02);
+      --bg-row-alt: rgba(255,255,255,0.03);
+      --text-primary: #f3f4f6;
+      --text-secondary: #9ca3af;
+      --text-muted: #6b7280;
+      --text-dim: #4b5563;
+      --grid-line: rgba(255,255,255,0.03);
+      --tooltip-bg: rgba(10,10,15,0.95);
+      --tooltip-border: rgba(255,255,255,0.1);
+      --scrollbar-thumb: #2a2a3d;
+      --scrollbar-track: #0a0a0f;
+      --chart-border: #0a0a0f;
+      --border-row: rgba(255,255,255,0.03);
+      --border-group: rgba(255,255,255,0.1);
+    }
+    html.light {
+      --bg-body: #f5f5f7;
+      --bg-glass: rgba(255, 255, 255, 0.85);
+      --bg-glass-card: rgba(255, 255, 255, 0.7);
+      --bg-glass-hover: rgba(0,0,0,0.06);
+      --border-glass: rgba(0,0,0,0.08);
+      --border-subtle: rgba(0,0,0,0.06);
+      --border-hover: rgba(0,0,0,0.15);
+      --bg-skeleton: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.07) 50%, rgba(0,0,0,0.04) 75%);
+      --bg-muted: rgba(0,0,0,0.03);
+      --bg-row-hover: rgba(0,0,0,0.03);
+      --bg-row-alt: rgba(0,0,0,0.04);
+      --text-primary: #1a1a2e;
+      --text-secondary: #4b5563;
+      --text-muted: #6b7280;
+      --text-dim: #9ca3af;
+      --grid-line: rgba(0,0,0,0.06);
+      --tooltip-bg: rgba(255,255,255,0.95);
+      --tooltip-border: rgba(0,0,0,0.1);
+      --scrollbar-thumb: #d1d5db;
+      --scrollbar-track: #f5f5f7;
+      --chart-border: #f5f5f7;
+      --border-row: rgba(0,0,0,0.04);
+      --border-group: rgba(0,0,0,0.1);
+    }
+    /* Light mode Tailwind overrides */
+    html.light .text-gray-100, html.light .text-white { color: var(--text-primary); }
+    html.light .text-gray-300 { color: #374151; }
+    html.light .text-gray-400 { color: #4b5563; }
+    html.light .text-gray-500 { color: #6b7280; }
+    html.light .text-gray-600 { color: #6b7280; }
+    html.light .bg-white\/5, html.light .bg-white\/\[0\.02\], html.light .bg-white\/\[0\.03\] { background: var(--bg-muted); }
+    html.light .border-white\/5, html.light .border-white\/10 { border-color: var(--border-subtle); }
+    html.light .border-b.border-white\/5 { border-color: var(--border-subtle); }
+    html.light .hover\:bg-white\/\[0\.02\]:hover { background: var(--bg-row-hover); }
+    html.light .border-b.border-white\/\[0\.03\] { border-color: var(--border-row); }
+    html.light footer { border-color: var(--border-subtle); color: var(--text-muted); }
+
+    * { scrollbar-width: thin; scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track); }
+    body { background: var(--bg-body); color: var(--text-primary); }
+    .glass { background: var(--bg-glass); backdrop-filter: blur(20px); border: 1px solid var(--border-glass); }
     /* glass-card base defined below with hover lift */
     .glow-blue { box-shadow: 0 0 20px rgba(59,130,246,0.15); }
     .glow-yellow { box-shadow: 0 0 20px rgba(245,158,11,0.15); }
@@ -59,14 +123,24 @@
     .bar-animate.bar-fill { width: var(--bar-w) !important; }
 
     /* 3. Hover lift (already partial on .glass-card, reinforce) */
-    .glass-card { background: rgba(26, 26, 38, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.3s ease; }
-    .glass-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+    .glass-card { background: var(--bg-glass-card); backdrop-filter: blur(12px); border: 1px solid var(--border-subtle); transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.3s ease; }
+    .glass-card:hover { border-color: var(--border-hover); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+    html.light .glass-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.08); }
 
     /* 6. Skeleton loading */
     @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-    .skeleton { border-radius: 12px; background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%); background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; }
+    .skeleton { border-radius: 12px; background: var(--bg-skeleton); background-size: 200% 100%; animation: shimmer 1.5s ease-in-out infinite; }
     .skeleton-card { height: 100px; }
     .skeleton-chart { height: 280px; }
+    .skeleton-winner { height: 140px; }
+    .skeleton-podium { height: 288px; }
+    .skeleton-noshow { height: 80px; }
+    .skeleton-commission { height: 200px; }
+    .skeleton-table { height: 400px; }
+    .skeleton-history { height: 200px; }
+    /* Section fade-in when replacing skeleton */
+    @keyframes sectionFadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .section-loaded { animation: sectionFadeIn 0.35s ease-out forwards; }
 
     /* 7. Smooth section transitions */
     @keyframes contentFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -80,13 +154,14 @@
       .winner-glow { animation: none !important; }
       .live-dot { animation: none !important; }
       .skeleton { animation: none !important; }
+      .section-loaded { animation: none !important; }
       main.content-enter { animation: none !important; }
     }
     .month-btn { transition: all 0.3s ease; }
     .month-btn.active { background: rgba(139,92,246,0.3); border-color: rgba(139,92,246,0.6); color: #c4b5fd; }
     .crown { font-size: 2rem; filter: drop-shadow(0 0 8px rgba(245,158,11,0.5)); }
     .bar-label { font-size: 0.65rem; }
-    .tooltip-custom { position: absolute; background: rgba(10,10,15,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; pointer-events: none; z-index: 50; }
+    .tooltip-custom { position: absolute; background: var(--tooltip-bg); border: 1px solid var(--tooltip-border); border-radius: 8px; padding: 8px 12px; pointer-events: none; z-index: 50; }
     /* progress-bar replaced by .bar-animate system */
     .stat-number { font-variant-numeric: tabular-nums; }
     .report-card { position: relative; overflow: hidden; }
@@ -94,7 +169,7 @@
     .report-card.lucas::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
     .report-card.jonathan::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .report-card.tariki::before { background: linear-gradient(90deg, #10b981, #34d399); }
-    .report-metric { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .report-metric { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-row); }
     .report-metric:last-child { border-bottom: none; }
     .report-metric .metric-bar { height: 4px; border-radius: 2px; }
     .best-badge { font-size: 9px; padding: 1px 6px; border-radius: 9999px; font-weight: 600; letter-spacing: 0.05em; }
@@ -110,8 +185,8 @@
 
     /* KPI tooltip */
     .kpi-info { position: relative; cursor: help; }
-    .kpi-info .kpi-tooltip { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: rgba(10,10,15,0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #d1d5db; white-space: nowrap; z-index: 60; transition: opacity 0.2s, visibility 0.2s; pointer-events: none; }
-    .kpi-info .kpi-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: rgba(255,255,255,0.1); }
+    .kpi-info .kpi-tooltip { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: var(--tooltip-bg); border: 1px solid var(--tooltip-border); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: var(--text-secondary); white-space: nowrap; z-index: 60; transition: opacity 0.2s, visibility 0.2s; pointer-events: none; }
+    .kpi-info .kpi-tooltip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--tooltip-border); }
     .kpi-info:hover .kpi-tooltip { visibility: visible; opacity: 1; }
 
     /* Refresh button */
@@ -141,12 +216,18 @@
     @media (max-width: 640px) {
       header > div { flex-wrap: wrap; gap: 8px; }
       header > div > .flex:last-child { width: 100%; justify-content: center; }
-      .month-btn { padding: 6px 12px; font-size: 12px; flex: 1; text-align: center; }
+      /* Month buttons: horizontal scroll instead of wrap */
+      #month-buttons { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; flex-wrap: nowrap !important; max-width: 100%; padding-bottom: 2px; }
+      #month-buttons::-webkit-scrollbar { display: none; }
+      .month-btn { padding: 6px 12px; font-size: 12px; flex-shrink: 0; white-space: nowrap; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
       header .font-display { font-size: 1rem; }
       main { padding-left: 12px; padding-right: 12px; }
       .glass-card { padding: 16px; }
       .report-card { padding: 14px; }
-      #podium-container { height: 14rem; gap: 8px; }
+      /* Podium smaller on mobile */
+      #podium-container { height: 11rem; gap: 6px; }
+      #podium-container .font-display.text-4xl { font-size: 1.5rem; }
+      #podium-container .font-display.text-sm { font-size: 12px; }
       .crown { font-size: 1.4rem; }
       #report-section { grid-template-columns: 1fr; }
       .score-board { flex-direction: column; gap: 8px; }
@@ -156,16 +237,27 @@
       #report-legend { grid-template-columns: 1fr; }
       #revenue-split { grid-template-columns: 1fr; }
       #executive-summary { font-size: 13px; }
+      /* Touch targets */
+      .barber-chip, .refresh-btn, #theme-toggle, #scroll-top { min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center; }
     }
     @media (max-width: 768px) {
       .grid.lg\:grid-cols-2 { grid-template-columns: 1fr; }
       .grid.lg\:grid-cols-3 { grid-template-columns: 1fr; }
       .grid.lg\:grid-cols-4 { grid-template-columns: 1fr 1fr; }
       .grid.grid-cols-3 { grid-template-columns: 1fr !important; }
-      .grid.grid-cols-3 > div canvas { max-height: 150px; }
+      .grid.grid-cols-3 > div canvas { max-height: 180px; }
       #comparison-table { font-size: 11px; }
       #comparison-table th, #comparison-table td { padding: 6px 8px; }
       .h-80 canvas, .h-72 canvas { min-height: 200px; }
+      /* Table sticky first column */
+      .table-scroll-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      #comparison-table th:first-child, #comparison-table td:first-child { position: sticky; left: 0; z-index: 2; background: var(--bg-glass-card); }
+    }
+    @media (max-width: 480px) {
+      header > div { padding: 12px; }
+      header .font-display { font-size: 0.875rem; }
+      #barber-filter { order: 3; width: 100%; justify-content: center; }
+      #month-buttons { order: 4; width: 100%; }
     }
   </style>
 </head>
@@ -184,6 +276,10 @@
         </div>
       </div>
       <div class="flex items-center gap-2 flex-wrap">
+        <button id="theme-toggle" onclick="toggleTheme()" class="flex items-center justify-center w-8 h-8 rounded-lg border border-white/10 bg-white/5 text-gray-400 hover:text-white transition-colors" title="Alternar tema">
+          <svg id="theme-icon-sun" class="w-4 h-4 hidden" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg id="theme-icon-moon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
         <div id="barber-filter" class="flex items-center gap-1.5"></div>
         <div class="w-px h-5 bg-white/10 mx-1 hidden sm:block"></div>
         <div id="month-buttons" class="flex items-center gap-2 flex-wrap"></div>
@@ -347,6 +443,19 @@
         Ranking Mensal Histórico
       </h2>
       <div id="history-ranking"></div>
+    </section>
+
+    <!-- ═══ RESUMO ANUAL ═══ -->
+    <section id="annual-summary-section" class="glass-card rounded-2xl p-6 reveal" style="display:none">
+      <h2 class="font-display text-lg font-bold mb-4 flex items-center gap-2">
+        <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        Resumo Anual 2026
+      </h2>
+      <div id="annual-summary-content"></div>
+      <div class="mt-6">
+        <h3 class="text-sm font-semibold text-gray-400 mb-3">Evolução Mensal</h3>
+        <div id="annual-sparklines" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
+      </div>
     </section>
 
   </main>
@@ -537,6 +646,105 @@ const SERVICE_LABELS = {
 let currentMonth = 'jan';
 let activeBarber = null; // null = todos, 'lucas'/'jonathan'/'tariki' = individual
 let charts = {};
+
+// ========== THEME SYSTEM ==========
+function getCSSVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+function getPreferredTheme() {
+  const stored = localStorage.getItem('dashboard-theme');
+  if (stored) return stored;
+  return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+
+function applyTheme(theme) {
+  document.documentElement.classList.toggle('light', theme === 'light');
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+  const iconSun = document.getElementById('theme-icon-sun');
+  const iconMoon = document.getElementById('theme-icon-moon');
+  if (iconSun) iconSun.classList.toggle('hidden', theme === 'dark');
+  if (iconMoon) iconMoon.classList.toggle('hidden', theme === 'light');
+  updateChartColors();
+}
+
+function toggleTheme() {
+  const current = document.documentElement.classList.contains('light') ? 'light' : 'dark';
+  const next = current === 'light' ? 'dark' : 'light';
+  localStorage.setItem('dashboard-theme', next);
+  applyTheme(next);
+}
+
+function updateChartColors() {
+  const gridColor = getCSSVar('--grid-line');
+  const textColor = getCSSVar('--text-muted');
+  const textSecondary = getCSSVar('--text-secondary');
+  const tooltipBg = getCSSVar('--tooltip-bg');
+  const tooltipBorder = getCSSVar('--tooltip-border');
+  const chartBorder = getCSSVar('--chart-border');
+
+  Object.values(charts).forEach(chart => {
+    if (!chart || !chart.options) return;
+    if (chart.options.scales) {
+      ['x', 'y', 'r'].forEach(axis => {
+        const s = chart.options.scales[axis];
+        if (!s) return;
+        if (s.grid) s.grid.color = gridColor;
+        if (s.ticks) s.ticks.color = textColor;
+        if (s.angleLines) s.angleLines.color = gridColor;
+        if (s.pointLabels) s.pointLabels.color = textSecondary;
+      });
+    }
+    if (chart.options.plugins?.tooltip) {
+      chart.options.plugins.tooltip.backgroundColor = tooltipBg;
+      chart.options.plugins.tooltip.borderColor = tooltipBorder;
+    }
+    if (chart.options.plugins?.legend?.labels) {
+      chart.options.plugins.legend.labels.color = textSecondary;
+    }
+    chart.data?.datasets?.forEach(ds => {
+      if (ds.borderColor === '#0a0a0f' || ds.borderColor === '#f5f5f7') ds.borderColor = chartBorder;
+    });
+    chart.update('none');
+  });
+}
+
+window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => {
+  if (!localStorage.getItem('dashboard-theme')) applyTheme(e.matches ? 'light' : 'dark');
+});
+
+// ========== LOCAL CACHE ==========
+const CACHE_KEY = 'barber-dashboard-data';
+const CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
+
+function saveToCache() {
+  try {
+    const cacheObj = { timestamp: Date.now(), data: {}, availableMonths };
+    BARBERS.forEach(b => {
+      cacheObj.data[b] = {};
+      availableMonths.forEach(m => { if (DATA[b][m]) cacheObj.data[b][m] = DATA[b][m]; });
+    });
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cacheObj));
+  } catch (e) { /* quota exceeded */ }
+}
+
+function loadFromCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const cached = JSON.parse(raw);
+    if (Date.now() - cached.timestamp > CACHE_MAX_AGE) { localStorage.removeItem(CACHE_KEY); return null; }
+    return cached;
+  } catch (e) { return null; }
+}
+
+function clearCache() { localStorage.removeItem(CACHE_KEY); }
+
+function updateCacheIndicator(timestamp) {
+  const indicator = document.getElementById('live-indicator');
+  if (!indicator) return;
+  const timeStr = new Date(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  indicator.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-blue-400 live-dot"></span> Cache &middot; ' + timeStr;
+  indicator.style.cssText = 'border: 1px solid rgba(96,165,250,0.3); background: rgba(96,165,250,0.1); color: #60a5fa;';
+}
 
 // ========== HELPERS ==========
 function fmt(v) { return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
@@ -750,15 +958,15 @@ function renderTrendChart() {
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: '#9ca3af', font: { size: 11 } } },
+        legend: { labels: { color: getCSSVar('--text-secondary'), font: { size: 11 } } },
         tooltip: {
-          backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+          backgroundColor: getCSSVar('--tooltip-bg'), borderColor: getCSSVar('--tooltip-border'), borderWidth: 1,
           callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtDec(ctx.parsed.y)}` }
         }
       },
       scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280' } },
-        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', callback: v => fmt(v) }, beginAtZero: true }
+        x: { grid: { color: getCSSVar('--grid-line') }, ticks: { color: getCSSVar('--text-muted') } },
+        y: { grid: { color: getCSSVar('--grid-line') }, ticks: { color: getCSSVar('--text-muted'), callback: v => fmt(v) }, beginAtZero: true }
       }
     }
   });
@@ -799,16 +1007,17 @@ function renderRadarChart() {
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
-        legend: { labels: { color: '#9ca3af', font: { size: 11 } } },
+        legend: { labels: { color: getCSSVar('--text-secondary'), font: { size: 11 } } },
         tooltip: {
+          backgroundColor: getCSSVar('--tooltip-bg'), borderColor: getCSSVar('--tooltip-border'), borderWidth: 1,
           callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtDec(ctx.parsed.r)}` }
         }
       },
       scales: {
         r: {
-          grid: { color: 'rgba(255,255,255,0.06)' },
-          angleLines: { color: 'rgba(255,255,255,0.06)' },
-          pointLabels: { color: '#9ca3af', font: { size: 11, weight: 600 } },
+          grid: { color: getCSSVar('--grid-line') },
+          angleLines: { color: getCSSVar('--grid-line') },
+          pointLabels: { color: getCSSVar('--text-secondary'), font: { size: 11, weight: 600 } },
           ticks: { display: false },
           beginAtZero: true
         }
@@ -837,7 +1046,7 @@ function renderDonutCharts() {
         datasets: [{
           data: [d.assBarba, d.assCorte, d.assCombo],
           backgroundColor: ['#6366f1', DATA[b].color, '#ec4899'],
-          borderColor: '#0a0a0f',
+          borderColor: getCSSVar('--chart-border'),
           borderWidth: 2,
         }]
       },
@@ -847,7 +1056,7 @@ function renderDonutCharts() {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+            backgroundColor: getCSSVar('--tooltip-bg'), borderColor: getCSSVar('--tooltip-border'), borderWidth: 1,
             callbacks: { label: ctx => `${ctx.label}: ${fmtDec(ctx.parsed)}` }
           }
         }
@@ -882,15 +1091,15 @@ function renderServicesChart() {
       responsive: true, maintainAspectRatio: false,
       indexAxis: 'y',
       plugins: {
-        legend: { labels: { color: '#9ca3af', font: { size: 11 } } },
+        legend: { labels: { color: getCSSVar('--text-secondary'), font: { size: 11 } } },
         tooltip: {
-          backgroundColor: 'rgba(10,10,15,0.95)', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1,
+          backgroundColor: getCSSVar('--tooltip-bg'), borderColor: getCSSVar('--tooltip-border'), borderWidth: 1,
           callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtDec(ctx.parsed.x)}` }
         }
       },
       scales: {
-        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#6b7280', callback: v => fmt(v) } },
-        y: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 11 } } }
+        x: { grid: { color: getCSSVar('--grid-line') }, ticks: { color: getCSSVar('--text-muted'), callback: v => fmt(v) } },
+        y: { grid: { display: false }, ticks: { color: getCSSVar('--text-secondary'), font: { size: 11 } } }
       }
     }
   });
@@ -1745,10 +1954,12 @@ async function loadLiveData() {
   if (anySuccess) {
     isLiveData = true;
     lastUpdateTime = new Date();
+    saveToCache();
     const timeStr = lastUpdateTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     if (indicator) {
       indicator.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-green-500 live-dot"></span> Live · ' + timeStr;
       indicator.className = indicator.className.replace('border-yellow-500/30 bg-yellow-500/10 text-yellow-400', 'border-green-500/30 bg-green-500/10 text-green-400');
+      indicator.style.cssText = '';
     }
   } else {
     if (indicator) {
@@ -1777,6 +1988,7 @@ function renderAll() {
   renderTopServices();
   renderTable();
   renderHistoryRanking();
+  renderAnnualSummary();
   // Trigger count-up after DOM update
   requestAnimationFrame(() => {
     runCountUpAnimations();
@@ -1789,6 +2001,7 @@ let isRefreshing = false;
 async function manualRefresh() {
   if (isRefreshing) return;
   isRefreshing = true;
+  clearCache();
   const icon = document.getElementById('refresh-icon');
   const label = document.getElementById('refresh-label');
   if (icon) icon.classList.add('refresh-spin');
@@ -1873,6 +2086,88 @@ function renderHistoryRanking() {
   container.innerHTML = rows.join('');
 }
 
+// ========== ANNUAL SUMMARY ==========
+function renderAnnualSummary() {
+  const section = document.getElementById('annual-summary-section');
+  if (!section) return;
+  if (availableMonths.length < 2) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  const content = document.getElementById('annual-summary-content');
+  const sparkContainer = document.getElementById('annual-sparklines');
+
+  // Cumulative stats per barber
+  const annualData = BARBERS.map(b => {
+    const totals = getMonthData(b, 'all');
+    return {
+      key: b, name: DATA[b].name, color: DATA[b].color, colorLight: DATA[b].colorLight,
+      totalBruto: totals.totalBruto, totalLiquido: totals.totalLiquido,
+      totalServicos: totals.totalServicos, assinaturas: totals.assinaturas,
+    };
+  }).sort((a, b) => b.totalBruto - a.totalBruto);
+
+  // Count monthly wins
+  const monthlyWins = {};
+  BARBERS.forEach(b => monthlyWins[b] = 0);
+  availableMonths.forEach(m => {
+    const ranked = BARBERS.map(b => ({ key: b, total: DATA[b][m]?.totalBruto || 0 })).sort((a, b) => b.total - a.total);
+    if (ranked[0].total > 0) monthlyWins[ranked[0].key]++;
+  });
+
+  const medals = ['\u{1F947}', '\u{1F948}', '\u{1F949}'];
+
+  content.innerHTML = `
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      ${annualData.map((b, i) => `
+        <div class="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">${medals[i] || ''}</span>
+            <span class="font-display font-bold" style="color:${b.colorLight}">${b.name}</span>
+          </div>
+          <div class="space-y-1.5 text-[11px]">
+            <div class="flex justify-between"><span class="text-gray-400">Receita Bruta</span><span class="font-bold" style="color:${b.colorLight}" data-countup="${b.totalBruto}" data-prefix="R$ " data-decimals="2">R$ 0</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Receita Líquida</span><span class="font-semibold text-gray-300" data-countup="${b.totalLiquido}" data-prefix="R$ " data-decimals="2">R$ 0</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Meses Vencidos</span><span class="font-bold" style="color:${b.colorLight}">${monthlyWins[b.key]} de ${availableMonths.length}</span></div>
+            <div class="flex justify-between"><span class="text-gray-400">Média Mensal</span><span class="text-gray-300">${fmtDec(b.totalBruto / availableMonths.length)}</span></div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  // Sparkline mini-charts
+  sparkContainer.innerHTML = BARBERS.map(b => `
+    <div class="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="w-2 h-2 rounded-full" style="background:${DATA[b].color}"></span>
+        <span class="text-xs font-semibold" style="color:${DATA[b].colorLight}">${DATA[b].name}</span>
+      </div>
+      <div style="height:60px;position:relative"><canvas id="spark-${b}"></canvas></div>
+    </div>
+  `).join('');
+
+  BARBERS.forEach(b => {
+    const ctx = document.getElementById('spark-' + b);
+    if (!ctx) return;
+    const chartKey = 'spark-' + b;
+    if (charts[chartKey]) charts[chartKey].destroy();
+    charts[chartKey] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: availableMonths.map(m => (MONTH_TABS[m] || m).substring(0, 3)),
+        datasets: [{ data: availableMonths.map(m => DATA[b][m]?.totalBruto || 0), backgroundColor: DATA[b].color + '80', borderRadius: 3, barThickness: 16 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { backgroundColor: getCSSVar('--tooltip-bg'), borderColor: getCSSVar('--tooltip-border'), borderWidth: 1, callbacks: { label: ctx => fmtDec(ctx.parsed.y) } } },
+        scales: { x: { display: true, grid: { display: false }, ticks: { color: getCSSVar('--text-dim'), font: { size: 9 } } }, y: { display: false } }
+      }
+    });
+  });
+
+  section.classList.add('section-loaded');
+}
+
 // ========== SCROLL TO TOP ==========
 function initScrollToTop() {
   const btn = document.getElementById('scroll-top');
@@ -1886,18 +2181,26 @@ function initScrollToTop() {
 
 // 6. Skeleton loading: show skeleton placeholders while data loads
 function showSkeletons() {
-  const kpi = document.getElementById('kpi-section');
-  if (kpi && !kpi.children.length) {
-    kpi.innerHTML = Array.from({ length: 4 }, () =>
-      '<div class="skeleton skeleton-card"></div>'
-    ).join('');
-  }
-  const report = document.getElementById('report-section');
-  if (report && !report.children.length) {
-    report.innerHTML = Array.from({ length: 3 }, () =>
-      '<div class="skeleton" style="height:200px"></div>'
-    ).join('');
-  }
+  const map = {
+    'kpi-section': { count: 4, cls: 'skeleton-card' },
+    'scoreboard-section': { count: 1, cls: 'skeleton-winner' },
+    'podium-container': { count: 1, cls: 'skeleton-podium', style: 'width:100%' },
+    'noshow-section': { count: 1, cls: 'skeleton-noshow' },
+    'report-section': { count: 3, cls: 'skeleton-chart' },
+    'commission-section': { count: 3, cls: 'skeleton-commission' },
+    'revenue-split': { count: 3, cls: 'skeleton-card' },
+    'top-services': { count: 5, cls: 'skeleton-card', style: 'height:48px' },
+    'history-ranking': { count: 1, cls: 'skeleton-history' },
+    'executive-summary': { count: 1, cls: 'skeleton-card', style: 'height:120px' },
+  };
+  Object.entries(map).forEach(([id, cfg]) => {
+    const el = document.getElementById(id);
+    if (el && !el.children.length) {
+      el.innerHTML = Array.from({ length: cfg.count }, () =>
+        `<div class="skeleton ${cfg.cls}" ${cfg.style ? `style="${cfg.style}"` : ''}></div>`
+      ).join('');
+    }
+  });
 }
 
 // 1 + 2. Scroll-reveal observer: reveals .reveal elements + triggers bar-fill
@@ -1948,35 +2251,38 @@ function reobserveReveals() {
 
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded', async () => {
+  applyTheme(getPreferredTheme());
   Chart.defaults.font.family = 'Inter, sans-serif';
-  // 5. Chart entrance animations: slower easing for premium feel
   Chart.defaults.animation = { duration: 800, easing: 'easeOutQuart' };
   Chart.defaults.transitions = { active: { animation: { duration: 200 } } };
 
-  // Detect months from hardcoded data
-  availableMonths = detectAvailableMonths();
-  // Default to latest month
-  currentMonth = availableMonths.length > 0 ? availableMonths[availableMonths.length - 1] : 'jan';
+  // Try cache first for instant render
+  const cached = loadFromCache();
+  if (cached) {
+    BARBERS.forEach(b => {
+      if (cached.data[b]) Object.keys(cached.data[b]).forEach(m => { DATA[b][m] = cached.data[b][m]; });
+    });
+    availableMonths = cached.availableMonths || detectAvailableMonths();
+    currentMonth = availableMonths.length > 0 ? availableMonths[availableMonths.length - 1] : 'jan';
+    renderAll();
+    updateCacheIndicator(cached.timestamp);
+    initRevealObserver();
+    initScrollToTop();
+    // Background fetch for fresh data
+    refreshData();
+  } else {
+    // No cache: show skeletons, render fallback, then fetch
+    availableMonths = detectAvailableMonths();
+    currentMonth = availableMonths.length > 0 ? availableMonths[availableMonths.length - 1] : 'jan';
+    showSkeletons();
+    renderAll();
+    initRevealObserver();
+    initScrollToTop();
+    await refreshData();
+  }
 
-  // 6. Skeleton loading: show placeholders before render
-  showSkeletons();
-
-  // Initial render with hardcoded data
-  renderAll();
-
-  // 1. Scroll-reveal: IntersectionObserver for .reveal elements + bar-fill
-  initRevealObserver();
-
-  // Scroll-to-top button
-  initScrollToTop();
-
-  // First live data load
-  await refreshData();
-
-  // Auto-refresh a cada 5 minutos
   refreshTimer = setInterval(refreshData, REFRESH_INTERVAL);
 
-  // Register PWA service worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   }

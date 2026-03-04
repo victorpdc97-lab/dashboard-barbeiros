@@ -1607,36 +1607,60 @@ function parseSheetTable(table) {
     else result[mapping.field] = val;
   });
 
-  // Step 4: Extract summary rows below totals (fixed positions)
-  // T+1: totalServicos | comissaoServicos
-  // T+2: produtosBarbearia | comissaoProdutos
-  // T+3: produtosBar | (comissão bar)
-  // T+4: assinaturas | assinaturas
-  // T+5: bonus | bonus
-  // T+6: noShow | noShowComissao
-  // T+7: totalBruto | totalLiquido
-  // T+8: indicacaoManicure
-  // T+9: indicacaoWpp
+  // Step 4: Extract summary rows below totals
+  // Strategy: try label-based matching first, fallback to fixed offsets
   const gv = (offset, col) => {
     const r = table.rows[totalsIdx + offset];
     if (!r || !r.c || !r.c[col]) return 0;
     return typeof r.c[col].v === 'number' ? r.c[col].v : 0;
   };
 
-  // Summary rows: only use for fields NOT already set from columns
-  result.totalServicos = gv(1, 1);
-  result.comissaoServicos = gv(1, 2);
-  // T+2 = total products (bar + barbearia combined), don't override individual values from columns
-  result.comissaoProdutos = gv(2, 2);
-  // T+3 col B = produtosBar total (don't override, already from column)
-  result.assinaturas = gv(4, 1);
-  // bonus already from column, don't override
-  result.noShow = gv(6, 1);
-  result.noShowComissao = gv(6, 2);
-  result.totalBruto = gv(7, 1);
-  result.totalLiquido = gv(7, 2);
-  result.indicacaoManicure = gv(8, 1);
-  result.indicacaoWpp = gv(9, 1);
+  // Scan summary rows for labeled entries
+  const summaryRows = {};
+  for (let i = totalsIdx + 1; i < Math.min(table.rows.length, totalsIdx + 15); i++) {
+    const r = table.rows[i];
+    if (!r || !r.c) continue;
+    const rawLabel = r.c[0] ? (r.c[0].v || '') : '';
+    if (!rawLabel) continue;
+    const lbl = normalizeLabel(String(rawLabel));
+    if (!lbl) continue;
+    const v1 = (r.c[1] && typeof r.c[1].v === 'number') ? r.c[1].v : 0;
+    const v2 = (r.c[2] && typeof r.c[2].v === 'number') ? r.c[2].v : 0;
+    if (lbl.includes('servico')) summaryRows.servicos = [v1, v2];
+    else if (lbl.includes('produto')) summaryRows.produtos = [v1, v2];
+    else if (lbl.includes('gorjeta')) summaryRows.gorjeta = [v1, v2];
+    else if (lbl.includes('assinatura') && !lbl.includes('bonus')) summaryRows.assinaturas = [v1, v2];
+    else if (lbl.includes('bonus')) summaryRows.bonus = [v1, v2];
+    else if (lbl.includes('multa') || lbl.includes('falta')) summaryRows.noShow = [v1, v2];
+    else if (lbl.includes('total') && lbl.includes('geral')) summaryRows.totalGeral = [v1, v2];
+    else if (lbl.includes('indicacao') && lbl.includes('manicure')) summaryRows.indicacaoManicure = [v1];
+    else if (lbl.includes('indicacao') && lbl.includes('wpp')) summaryRows.indicacaoWpp = [v1];
+  }
+
+  const hasLabels = Object.keys(summaryRows).length >= 3;
+
+  if (hasLabels) {
+    // Label-based extraction (Março 26+ format with explicit labels)
+    if (summaryRows.servicos) { result.totalServicos = summaryRows.servicos[0]; result.comissaoServicos = summaryRows.servicos[1]; }
+    if (summaryRows.produtos) { result.comissaoProdutos = summaryRows.produtos[1]; }
+    if (summaryRows.assinaturas) { result.assinaturas = summaryRows.assinaturas[0]; }
+    if (summaryRows.noShow) { result.noShow = summaryRows.noShow[0]; result.noShowComissao = summaryRows.noShow[1]; }
+    if (summaryRows.totalGeral) { result.totalBruto = summaryRows.totalGeral[0]; result.totalLiquido = summaryRows.totalGeral[1]; }
+    if (summaryRows.indicacaoManicure) { result.indicacaoManicure = summaryRows.indicacaoManicure[0]; }
+    if (summaryRows.indicacaoWpp) { result.indicacaoWpp = summaryRows.indicacaoWpp[0]; }
+  } else {
+    // Fixed offset fallback (Jan/Fev format with null labels)
+    result.totalServicos = gv(1, 1);
+    result.comissaoServicos = gv(1, 2);
+    result.comissaoProdutos = gv(2, 2);
+    result.assinaturas = gv(4, 1);
+    result.noShow = gv(6, 1);
+    result.noShowComissao = gv(6, 2);
+    result.totalBruto = gv(7, 1);
+    result.totalLiquido = gv(7, 2);
+    result.indicacaoManicure = gv(8, 1);
+    result.indicacaoWpp = gv(9, 1);
+  }
 
   return result;
 }

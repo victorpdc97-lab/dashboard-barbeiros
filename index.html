@@ -1212,12 +1212,16 @@ function calcWinner(allData) {
   const mainMetrics = REPORT_METRICS.filter(m => !m.isTiebreaker);
   const tiebreakers = REPORT_METRICS.filter(m => m.isTiebreaker);
 
-  // Find best per main metric
+  // Find best per main metric (ties = no one scores)
   const bests = {};
   mainMetrics.forEach(m => {
-    let maxVal = 0, maxBarber = '';
-    allData.forEach(b => { if ((b.report[m.key] || 0) > maxVal) { maxVal = b.report[m.key]; maxBarber = b.key; } });
-    if (maxVal > 0) bests[m.key] = maxBarber;
+    let maxVal = 0, maxBarber = '', tieCount = 0;
+    allData.forEach(b => {
+      const val = b.report[m.key] || 0;
+      if (val > maxVal) { maxVal = val; maxBarber = b.key; tieCount = 1; }
+      else if (val === maxVal && val > 0) { tieCount++; }
+    });
+    if (maxVal > 0 && tieCount === 1) bests[m.key] = maxBarber;
   });
 
   // Count points (only main metrics)

@@ -1272,13 +1272,18 @@ function calcWinner(allData) {
     if (maxVal > 0) tiebreakerBests[m.key] = maxBarber;
   });
 
-  // Compute positional ranking per metric (1o, 2o, 3o)
+  // Compute positional ranking per metric (1o, 2o, 3o) — ties share same rank
   const rankings = {};
   REPORT_METRICS.forEach(m => {
     const sorted = BARBERS.map(b => ({ key: b, val: allData.find(d => d.key === b).report[m.key] || 0 }))
       .sort((a, b) => b.val - a.val);
     rankings[m.key] = {};
-    sorted.forEach((s, i) => { rankings[m.key][s.key] = s.val > 0 ? i + 1 : 0; });
+    let rank = 1;
+    sorted.forEach((s, i) => {
+      if (s.val <= 0) { rankings[m.key][s.key] = 0; return; }
+      if (i > 0 && s.val < sorted[i - 1].val) rank = i + 1;
+      rankings[m.key][s.key] = rank;
+    });
   });
 
   return { scores, ranked, winner, tiebreakUsed, bests: { ...bests, ...tiebreakerBests }, rankings, topScore, isTied: tied.length > 1 };

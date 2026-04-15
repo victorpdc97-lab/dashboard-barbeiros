@@ -606,6 +606,8 @@ const REPORT_METRICS = [
     desc: 'Pacote especial para noivos' },
   { key: 'bebidas', label: 'Faturamento Bebidas', icon: '🍺',
     desc: 'Venda de produtos do bar (cervejas, drinks, etc.)' },
+  { key: 'bonusAssinatura', label: 'Bônus Venda de Assinatura', icon: '🎁',
+    desc: 'Comissão de 20% sobre a primeira mensalidade de assinaturas vendidas' },
   { key: 'indicacaoManicure', label: 'Indicação Manicure', icon: '💅', isQty: true,
     desc: 'Quantidade de clientes indicados para manicure' },
   { key: 'indicacaoWpp', label: 'Indicação WPP Cliente', icon: '📱', isQty: true,
@@ -628,6 +630,7 @@ function calcReport(barber, month) {
     blackMask: s.blackMask,
     diaNoivo: d.diaNoivo || 0,
     bebidas: d.produtosBar,
+    bonusAssinatura: d.bonus || 0,
     indicacaoManicure: d.indicacaoManicure || 0,
     indicacaoWpp: d.indicacaoWpp || 0,
     sobrancelha: s.sobNavalha + s.sobPinca,
@@ -1867,17 +1870,42 @@ function parseSheetTable(table) {
     if (summaryRows.indicacaoManicure) { result.indicacaoManicure = summaryRows.indicacaoManicure[0]; }
     if (summaryRows.indicacaoWpp) { result.indicacaoWpp = summaryRows.indicacaoWpp[0]; }
   } else {
-    // Fixed offset fallback (Jan/Fev format with null labels)
-    result.totalServicos = gv(1, 1);
-    result.comissaoServicos = gv(1, 2);
-    result.comissaoProdutos = gv(2, 2);
-    result.assinaturas = gv(4, 1);
-    result.noShow = gv(6, 1);
-    result.noShowComissao = gv(6, 2);
-    result.totalBruto = gv(7, 1);
-    result.totalLiquido = gv(7, 2);
-    result.indicacaoManicure = gv(8, 1);
-    result.indicacaoWpp = gv(9, 1);
+    // Pattern-based extraction (planilhas sem labels na col A: Jan/Fev/Mar/Abr).
+    // Coleta todas as linhas-resumo abaixo do "totals row" e identifica cada uma
+    // pelo padrão de valores, em vez de offsets fixos (que quebram quando alguma
+    // linha intermediária — ex.: Bônus — está preenchida em um barbeiro mas não
+    // em outro, deslocando o "Total Geral").
+    const summary = [];
+    for (let i = totalsIdx + 1; i < Math.min(table.rows.length, totalsIdx + 15); i++) {
+      const r = table.rows[i];
+      if (!r || !r.c) continue;
+      const a = (r.c[1] && typeof r.c[1].v === 'number') ? r.c[1].v : 0;
+      const b = (r.c[2] && typeof r.c[2].v === 'number') ? r.c[2].v : 0;
+      summary.push({ idx: i - totalsIdx, a, b });
+    }
+    // Convenção observada nas planilhas: 1ª linha = Serviços, 2ª = Produtos.
+    if (summary[0]) { result.totalServicos = summary[0].a; result.comissaoServicos = summary[0].b; }
+    if (summary[1]) { result.comissaoProdutos = summary[1].b; }
+    // Total Geral = última linha de resumo onde bruto >= líquido > 0 (linhas
+    // posteriores são contadores/indicações com 1 só valor).
+    let totalRow = null;
+    for (let i = summary.length - 1; i >= 0; i--) {
+      const s = summary[i];
+      if (s.a > 0 && s.b > 0 && s.a >= s.b) { totalRow = s; break; }
+    }
+    if (totalRow) { result.totalBruto = totalRow.a; result.totalLiquido = totalRow.b; }
+    // Assinaturas = linha onde a == b (recebe 100%, sem comissão), antes do Total Geral.
+    for (const s of summary) {
+      if (s !== totalRow && s.a > 0 && Math.abs(s.a - s.b) < 0.01) {
+        result.assinaturas = s.a; break;
+      }
+    }
+    // Indicações ficam após o Total Geral, na coluna B (1 valor só).
+    if (totalRow) {
+      const after = summary.filter(s => s.idx > totalRow.idx);
+      if (after[0]) result.indicacaoManicure = after[0].a;
+      if (after[1]) result.indicacaoWpp = after[1].a;
+    }
   }
 
   return result;

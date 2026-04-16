@@ -1865,6 +1865,7 @@ function parseSheetTable(table) {
     if (summaryRows.servicos) { result.totalServicos = summaryRows.servicos[0]; result.comissaoServicos = summaryRows.servicos[1]; }
     if (summaryRows.produtos) { result.comissaoProdutos = summaryRows.produtos[1]; }
     if (summaryRows.assinaturas) { result.assinaturas = summaryRows.assinaturas[0]; }
+    if (summaryRows.bonus) { result.bonus = summaryRows.bonus[0]; }
     if (summaryRows.noShow) { result.noShow = summaryRows.noShow[0]; result.noShowComissao = summaryRows.noShow[1]; }
     if (summaryRows.totalGeral) { result.totalBruto = summaryRows.totalGeral[0]; result.totalLiquido = summaryRows.totalGeral[1]; }
     if (summaryRows.indicacaoManicure) { result.indicacaoManicure = summaryRows.indicacaoManicure[0]; }

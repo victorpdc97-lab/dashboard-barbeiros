@@ -606,8 +606,6 @@ const REPORT_METRICS = [
     desc: 'Pacote especial para noivos' },
   { key: 'bebidas', label: 'Faturamento Bebidas', icon: '🍺',
     desc: 'Venda de produtos do bar (cervejas, drinks, etc.)' },
-  { key: 'bonusAssinatura', label: 'Bônus Venda de Assinatura', icon: '🎁',
-    desc: 'Comissão de 20% sobre a primeira mensalidade de assinaturas vendidas' },
   { key: 'indicacaoManicure', label: 'Indicação Manicure', icon: '💅', isQty: true,
     desc: 'Quantidade de clientes indicados para manicure' },
   { key: 'indicacaoWpp', label: 'Indicação WPP Cliente', icon: '📱', isQty: true,
@@ -616,6 +614,8 @@ const REPORT_METRICS = [
     desc: '1º critério de desempate — Faturamento com depilação cera' },
   { key: 'sobrancelha', label: 'Sobrancelha', icon: '✨', isTiebreaker: true,
     desc: '2º critério de desempate — Sobrancelha Navalha + Sobrancelha Pinça' },
+  { key: 'bonusAssinatura', label: 'Bônus Venda de Assinatura', icon: '🎁', isTiebreaker: true,
+    desc: '3º critério de desempate — Comissão de 20% sobre a primeira mensalidade de assinaturas vendidas' },
 ];
 
 // Calcula relatório automaticamente a partir dos dados da planilha

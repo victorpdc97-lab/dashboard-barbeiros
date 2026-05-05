@@ -610,13 +610,39 @@ const REPORT_METRICS = [
     desc: 'Quantidade de clientes indicados para manicure' },
   { key: 'indicacaoWpp', label: 'Indicação WPP Cliente', icon: '📱', isQty: true,
     desc: 'Quantidade de novos clientes indicados via WhatsApp' },
-  { key: 'depilacaoCera', label: 'Depilação Cera', icon: '✂️', isTiebreaker: true,
-    desc: '1º critério de desempate — Faturamento com depilação cera' },
-  { key: 'sobrancelha', label: 'Sobrancelha', icon: '✨', isTiebreaker: true,
-    desc: '2º critério de desempate — Sobrancelha Navalha + Sobrancelha Pinça' },
-  { key: 'bonusAssinatura', label: 'Bônus Venda de Assinatura', icon: '🎁', isTiebreaker: true,
-    desc: '3º critério de desempate — Comissão de 20% sobre a primeira mensalidade de assinaturas vendidas' },
+  { key: 'depilacaoCera', label: 'Depilação Cera', icon: '✂️',
+    desc: 'Faturamento com depilação cera' },
+  { key: 'sobrancelha', label: 'Sobrancelha', icon: '✨',
+    desc: 'Sobrancelha Navalha + Sobrancelha Pinça' },
+  { key: 'bonusAssinatura', label: 'Bônus Venda de Assinatura', icon: '🎁',
+    desc: 'Comissão de 20% sobre a primeira mensalidade de assinaturas vendidas' },
 ];
+
+// Pontuação tem duas eras: jan-abr 2026 (antiga) e mai 2026+ (nova). Visão 'all' usa a nova.
+const SCORING_NEW_RULES_FROM = 'mai';
+
+function isNewScoringMonth(month) {
+  if (month === 'all') return true;
+  return MONTH_ORDER.indexOf(month) >= MONTH_ORDER.indexOf(SCORING_NEW_RULES_FROM);
+}
+
+function getMetricRole(key, month) {
+  if (isNewScoringMonth(month)) {
+    if (['bebidas', 'indicacaoManicure', 'indicacaoWpp'].includes(key)) return 'informational';
+    if (key === 'bonusAssinatura') return 'tiebreaker';
+    return 'main';
+  }
+  if (['depilacaoCera', 'sobrancelha', 'bonusAssinatura'].includes(key)) return 'tiebreaker';
+  return 'main';
+}
+
+function sortMetricsByRole(metrics, month) {
+  const order = { main: 0, tiebreaker: 1, informational: 2 };
+  return metrics
+    .map((m, i) => ({ m, i, r: order[getMetricRole(m.key, month)] }))
+    .sort((a, b) => a.r - b.r || a.i - b.i)
+    .map(x => x.m);
+}
 
 // Calcula relatório automaticamente a partir dos dados da planilha
 function calcReport(barber, month) {
@@ -1211,9 +1237,9 @@ function renderTable() {
 }
 
 // ========== WINNER CALCULATION ==========
-function calcWinner(allData) {
-  const mainMetrics = REPORT_METRICS.filter(m => !m.isTiebreaker);
-  const tiebreakers = REPORT_METRICS.filter(m => m.isTiebreaker);
+function calcWinner(allData, month) {
+  const mainMetrics = REPORT_METRICS.filter(m => getMetricRole(m.key, month) === 'main');
+  const tiebreakers = REPORT_METRICS.filter(m => getMetricRole(m.key, month) === 'tiebreaker');
 
   // Find best per main metric (ties = no one scores)
   const bests = {};
@@ -1297,11 +1323,13 @@ function renderReport() {
   const section = document.getElementById('report-section');
   const allData = BARBERS.map(b => ({ key: b, ...DATA[b], report: calcReport(b, currentMonth) }));
 
-  const result = calcWinner(allData);
+  const result = calcWinner(allData, currentMonth);
   const { scores, winner, tiebreakUsed, bests, rankings, isTied } = result;
 
   // Render scoreboard + winner
   renderScoreboard(allData, scores, winner, tiebreakUsed, isTied);
+
+  const orderedMetrics = sortMetricsByRole(REPORT_METRICS, currentMonth);
 
   section.innerHTML = allData.map(b => {
     const colorClass = b.key;
@@ -1321,35 +1349,42 @@ function renderReport() {
             <p class="text-[10px] text-gray-500 uppercase tracking-wider">${currentMonth === 'all' ? 'Todos' : (MONTH_TABS[currentMonth] || currentMonth)} 2026 &mdash; ${scores[b.key]} pts</p>
           </div>
         </div>
-        ${REPORT_METRICS.map(m => {
+        ${orderedMetrics.map((m, i) => {
+          const role = getMetricRole(m.key, currentMonth);
+          const prevRole = i > 0 ? getMetricRole(orderedMetrics[i-1].key, currentMonth) : null;
+          const showSeparator = i > 0 && role !== prevRole;
+          const isTb = role === 'tiebreaker';
+          const isInfo = role === 'informational';
           const val = b.report[m.key] || 0;
           const maxForMetric = Math.max(...allData.map(x => x.report[m.key] || 0));
           const pct = maxForMetric > 0 ? (val / maxForMetric * 100) : 0;
           const isBest = bests[m.key] === b.key && val > 0;
           const rank = rankings[m.key] ? rankings[m.key][b.key] : 0;
-          const separator = m.isTiebreaker ? '<div class="border-t border-dashed border-white/10 my-2"></div>' : '';
+          const separator = showSeparator ? '<div class="border-t border-dashed border-white/10 my-2"></div>' : '';
           const rankColors = { 1: 'bg-yellow-500/20 text-yellow-400', 2: 'bg-gray-400/15 text-gray-400', 3: 'bg-orange-800/20 text-orange-700' };
           const rankLabels = { 1: '1o', 2: '2o', 3: '3o' };
-          const rankBadge = rank > 0 && !m.isTiebreaker ? `<span class="best-badge ${rankColors[rank] || ''}">${rankLabels[rank] || ''}</span>` : '';
-          const badge = isBest
-            ? (m.isTiebreaker
-              ? '<span class="best-badge bg-orange-500/20 text-orange-400">DESEMPATE</span>'
-              : '')
-            : '';
+          const rankBadge = rank > 0 && role === 'main' ? `<span class="best-badge ${rankColors[rank] || ''}">${rankLabels[rank] || ''}</span>` : '';
+          const badge = isBest && isTb ? '<span class="best-badge bg-orange-500/20 text-orange-400">DESEMPATE</span>' : '';
+          const opacityClass = (isTb || isInfo) ? 'opacity-75' : '';
+          const roleTag = isTb
+            ? '<span class="formula-tag" style="background:rgba(249,115,22,0.15);color:#fb923c;">DESEMPATE</span>'
+            : (isInfo ? '<span class="formula-tag" style="background:rgba(107,114,128,0.15);color:#9ca3af;">INFORMATIVO</span>' : '');
+          const barColor = isTb ? '#f97316' : (isInfo ? '#6b7280' : b.color);
+          const valColor = val > 0 ? (isTb ? '#fb923c' : (isInfo ? '#9ca3af' : b.colorLight)) : '#4b5563';
           return `
             ${separator}
-            <div class="report-metric ${m.isTiebreaker ? 'opacity-75' : ''}">
+            <div class="report-metric ${opacityClass}">
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-1.5 mb-1">
                   <span class="text-[11px] text-gray-400">${m.icon} ${m.label}</span>
                   ${rankBadge}${badge}
-                  ${m.isTiebreaker ? '<span class="formula-tag" style="background:rgba(249,115,22,0.15);color:#fb923c;">DESEMPATE</span>' : ''}
+                  ${roleTag}
                 </div>
                 <div class="w-full bg-white/5 rounded-full h-1 mt-1">
-                  <div class="metric-bar bar-animate rounded-full" style="--bar-w: ${pct}%; background: ${m.isTiebreaker ? '#f97316' : b.color};"></div>
+                  <div class="metric-bar bar-animate rounded-full" style="--bar-w: ${pct}%; background: ${barColor};"></div>
                 </div>
               </div>
-              <span class="text-sm font-semibold stat-number ml-3 whitespace-nowrap" style="color: ${val > 0 ? (m.isTiebreaker ? '#fb923c' : b.colorLight) : '#4b5563'}" ${val > 0 ? (m.isQty ? `data-countup="${val}"` : `data-countup="${val}" data-prefix="R$ " data-decimals="2"`) : ''}>${m.isQty ? '0' : (val > 0 ? 'R$ 0,00' : 'R$ 0,00')}</span>
+              <span class="text-sm font-semibold stat-number ml-3 whitespace-nowrap" style="color: ${valColor}" ${val > 0 ? (m.isQty ? `data-countup="${val}"` : `data-countup="${val}" data-prefix="R$ " data-decimals="2"`) : ''}>${m.isQty ? '0' : (val > 0 ? 'R$ 0,00' : 'R$ 0,00')}</span>
             </div>
           `;
         }).join('')}
@@ -1359,17 +1394,21 @@ function renderReport() {
 
   // Render legend
   const legend = document.getElementById('report-legend');
-  legend.innerHTML = REPORT_METRICS.map(m => `
+  legend.innerHTML = orderedMetrics.map(m => {
+    const role = getMetricRole(m.key, currentMonth);
+    return `
     <div class="flex items-start gap-2 py-1">
       <span class="text-sm leading-none mt-0.5">${m.icon}</span>
       <div>
         <span class="text-[11px] font-semibold text-gray-300">${m.label}</span>
         ${m.isQty ? '<span class="text-[9px] ml-1 px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-400 font-medium">QTD</span>' : ''}
-        ${m.isTiebreaker ? '<span class="text-[9px] ml-1 px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-400 font-medium">DESEMPATE</span>' : ''}
+        ${role === 'tiebreaker' ? '<span class="text-[9px] ml-1 px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-400 font-medium">DESEMPATE</span>' : ''}
+        ${role === 'informational' ? '<span class="text-[9px] ml-1 px-1.5 py-0.5 rounded bg-gray-500/15 text-gray-400 font-medium">INFORMATIVO</span>' : ''}
         <p class="text-[10px] text-gray-500 leading-snug mt-0.5">${m.desc}</p>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
 }
 
@@ -1377,7 +1416,7 @@ function renderScoreboard(allData, scores, winner, tiebreakUsed, isTied) {
   const sb = document.getElementById('scoreboard-section');
   const winnerData = DATA[winner];
   const monthLabel = currentMonth === 'all' ? 'Todos' : (MONTH_TABS[currentMonth] || currentMonth);
-  const mainCount = REPORT_METRICS.filter(m => !m.isTiebreaker).length;
+  const mainCount = REPORT_METRICS.filter(m => getMetricRole(m.key, currentMonth) === 'main').length;
 
   // Sort barbers by score descending for the scoreboard
   const sorted = BARBERS.map(b => ({ key: b, ...DATA[b], score: scores[b] })).sort((a, b) => b.score - a.score);
@@ -1519,10 +1558,10 @@ function renderTopServices() {
 function renderExecutiveSummary() {
   const container = document.getElementById('executive-summary');
   const allData = BARBERS.map(b => ({ key: b, ...DATA[b], report: calcReport(b, currentMonth) }));
-  const result = calcWinner(allData);
+  const result = calcWinner(allData, currentMonth);
   const { scores, winner, isTied, tiebreakUsed } = result;
   const winnerData = DATA[winner];
-  const mainCount = REPORT_METRICS.filter(m => !m.isTiebreaker).length;
+  const mainCount = REPORT_METRICS.filter(m => getMetricRole(m.key, currentMonth) === 'main').length;
 
   const bullets = [];
 

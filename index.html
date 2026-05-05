@@ -796,12 +796,12 @@ function varBadgeHtml(pct) {
 }
 
 function detectAvailableMonths() {
-  // A month only appears if ALL barbers have real data for it
+  // Show the month if at least one barber has data — covers start-of-month
+  // when not everyone has logged sales yet (missing barbers render as R$ 0).
   return MONTH_ORDER.filter(m => {
-    return BARBERS.every(b => {
+    return BARBERS.some(b => {
       const d = DATA[b][m];
       if (!d) return false;
-      // Must have meaningful data (not just an empty template)
       return d.totalBruto > 0 || d.totalServicos > 0 || Object.values(d.servicos || {}).some(v => v > 0);
     });
   });

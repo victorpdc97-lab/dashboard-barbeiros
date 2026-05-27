@@ -107,6 +107,7 @@
     .podium-1 { animation: float 3s ease-in-out infinite; }
     .podium-2 { animation: float 3s ease-in-out infinite 0.5s; }
     .podium-3 { animation: float 3s ease-in-out infinite 1s; }
+    .podium-4 { animation: float 3s ease-in-out infinite 1.5s; }
     @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
     /* 1. Scroll-Reveal: elements fade up when entering viewport */
@@ -150,7 +151,7 @@
     @media (prefers-reduced-motion: reduce) {
       .reveal, .reveal.visible { animation: none !important; opacity: 1 !important; transform: none !important; }
       .bar-animate { transition: none !important; }
-      .podium-1, .podium-2, .podium-3 { animation: none !important; }
+      .podium-1, .podium-2, .podium-3, .podium-4 { animation: none !important; }
       .winner-glow { animation: none !important; }
       .live-dot { animation: none !important; }
       .skeleton { animation: none !important; }
@@ -169,6 +170,7 @@
     .report-card.lucas::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
     .report-card.jonathan::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .report-card.tariki::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .report-card.patrick::before { background: linear-gradient(90deg, #a855f7, #c084fc); }
     .report-metric { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-row); }
     .report-metric:last-child { border-bottom: none; }
     .report-metric .metric-bar { height: 4px; border-radius: 2px; }
@@ -244,8 +246,7 @@
       .grid.lg\:grid-cols-2 { grid-template-columns: 1fr; }
       .grid.lg\:grid-cols-3 { grid-template-columns: 1fr; }
       .grid.lg\:grid-cols-4 { grid-template-columns: 1fr 1fr; }
-      .grid.grid-cols-3 { grid-template-columns: 1fr !important; }
-      .grid.grid-cols-3 > div canvas { max-height: 180px; }
+      #donut-grid > div canvas { max-height: 160px; }
       #comparison-table { font-size: 11px; }
       #comparison-table th, #comparison-table td { padding: 6px 8px; }
       .h-80 canvas, .h-72 canvas { min-height: 200px; }
@@ -334,7 +335,7 @@
           Auto-calculado
         </span>
       </div>
-      <div id="report-section" class="grid grid-cols-1 lg:grid-cols-3 gap-4"></div>
+      <div id="report-section" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4"></div>
       <details class="mt-6">
         <summary class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-gray-300 transition-colors select-none">
           <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -349,7 +350,7 @@
         <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
         Comissão Individual — Quanto cada um leva pra casa
       </h2>
-      <div id="commission-section" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
+      <div id="commission-section" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
     </section>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -365,18 +366,22 @@
           <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8m13 0v6m-3-3h6"/></svg>
           Assinaturas
         </h2>
-        <div class="grid grid-cols-3 gap-4" style="height:250px">
-          <div class="flex flex-col items-center justify-center overflow-hidden" style="max-height:250px">
-            <div style="position:relative;width:100%;max-height:210px"><canvas id="donutLucas"></canvas></div>
+        <div id="donut-grid" class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col items-center justify-center overflow-hidden">
+            <div style="position:relative;width:100%;max-height:160px"><canvas id="donutLucas"></canvas></div>
             <p class="text-xs text-blue-400 mt-2 font-medium">Lucas</p>
           </div>
-          <div class="flex flex-col items-center justify-center overflow-hidden" style="max-height:250px">
-            <div style="position:relative;width:100%;max-height:210px"><canvas id="donutJonathan"></canvas></div>
+          <div class="flex flex-col items-center justify-center overflow-hidden">
+            <div style="position:relative;width:100%;max-height:160px"><canvas id="donutJonathan"></canvas></div>
             <p class="text-xs text-yellow-400 mt-2 font-medium">Jonathan</p>
           </div>
-          <div class="flex flex-col items-center justify-center overflow-hidden" style="max-height:250px">
-            <div style="position:relative;width:100%;max-height:210px"><canvas id="donutTariki"></canvas></div>
+          <div class="flex flex-col items-center justify-center overflow-hidden">
+            <div style="position:relative;width:100%;max-height:160px"><canvas id="donutTariki"></canvas></div>
             <p class="text-xs text-green-400 mt-2 font-medium">Tariki</p>
+          </div>
+          <div class="flex flex-col items-center justify-center overflow-hidden">
+            <div style="position:relative;width:100%;max-height:160px"><canvas id="donutPatrick"></canvas></div>
+            <p class="text-xs text-purple-400 mt-2 font-medium">Patrick</p>
           </div>
         </div>
       </section>
@@ -454,7 +459,7 @@
       <div id="annual-summary-content"></div>
       <div class="mt-6">
         <h3 class="text-sm font-semibold text-gray-400 mb-3">Evolução Mensal</h3>
-        <div id="annual-sparklines" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
+        <div id="annual-sparklines" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
       </div>
     </section>
 
@@ -562,6 +567,14 @@ const DATA = {
       indicacaoManicure: 0, indicacaoWpp: 0,
       totalBruto: 3322, totalLiquido: 2569
     }
+  },
+  patrick: {
+    name: 'Patrick',
+    color: '#a855f7',
+    colorLight: '#c084fc',
+    colorBg: 'rgba(168,85,247,0.15)'
+    // Sem meses fixos: dados carregados ao vivo da planilha.
+    // Offline / antes do fetch, getMonthData() retorna R$ 0.
   }
 };
 
@@ -570,6 +583,7 @@ const SHEET_IDS = {
   lucas: '15aaj8g8hlZDKlb6QYHNQbGo7QLlPsx_vZ9k8B5wMMA4',
   jonathan: '1UbEWqHgLmZKjX26Hc7SdC10EBaB_o5vy50zrjOmgiRk',
   tariki: '1MrcQDVRNtTn8kSaC4rotWdu8FxGk-qbcMGabrWsqcPc',
+  patrick: '10jLRiDfGydW0rXtD3vOyw6q-JPNRp_9lAcA7H25fIW4',
 };
 
 const MONTH_ORDER = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -663,7 +677,9 @@ function calcReport(barber, month) {
   };
 }
 
-const BARBERS = ['lucas', 'jonathan', 'tariki'];
+// Patrick fica no fim: BARBERS[0] (Lucas) é usado no init para detectar
+// quais meses existem nas planilhas — manter o detector com histórico completo.
+const BARBERS = ['lucas', 'jonathan', 'tariki', 'patrick'];
 const SERVICE_LABELS = {
   corte: 'Corte', barba: 'Barba', acabamento: 'Acabamento', escova: 'Escova',
   sobNavalha: 'Sob. Navalha', sobPinca: 'Sob. Pinça', hidrCabelo: 'Hidr. Cabelo',
@@ -936,24 +952,25 @@ function renderPodium() {
     liquido: getMonthData(b, currentMonth).totalLiquido
   })).sort((a, b) => b.total - a.total);
 
-  const maxTotal = ranked[0].total;
-  const positions = [
-    { idx: 1, height: '55%', order: 'order-1', label: '2' },
-    { idx: 0, height: '75%', order: 'order-2', label: '1' },
-    { idx: 2, height: '40%', order: 'order-3', label: '3' }
-  ];
+  const n = ranked.length;
+  if (n === 0) { container.innerHTML = ''; return; }
 
-  container.innerHTML = positions.map((pos, i) => {
-    const b = ranked[pos.idx];
-    const isCrown = pos.idx === 0;
+  // Ordem visual: 2º, 1º, 3º, 4º… (mantém o 1º próximo ao centro).
+  const orderIdx = n === 1 ? [0] : [1, 0, ...Array.from({ length: n - 2 }, (_, k) => k + 2)];
+  const width = Math.floor(84 / n); // largura % por degrau, deixa folga p/ os gaps
+
+  container.innerHTML = orderIdx.map((rankIdx, slot) => {
+    const b = ranked[rankIdx];
+    const isCrown = rankIdx === 0;
+    const heightPct = n === 1 ? 75 : Math.round(75 - (rankIdx / (n - 1)) * 40); // 1º=75% … último=35%
     return `
-      <div class="flex flex-col items-center ${pos.order} podium-${i+1}" style="width: 30%">
+      <div class="flex flex-col items-center podium-${slot + 1}" style="width: ${width}%">
         ${isCrown ? '<div class="crown mb-1">&#128081;</div>' : '<div class="h-10"></div>'}
         <p class="font-display font-bold text-sm mb-1" style="color: ${b.colorLight}">${b.name}</p>
         <p class="text-xs text-gray-400 mb-2">${fmt(b.total)}</p>
-        <div class="w-full rounded-t-xl relative overflow-hidden" style="height: ${pos.height}; background: linear-gradient(to top, ${b.color}20, ${b.color}60);">
+        <div class="w-full rounded-t-xl relative overflow-hidden" style="height: ${heightPct}%; background: linear-gradient(to top, ${b.color}20, ${b.color}60);">
           <div class="absolute inset-0 flex items-center justify-center">
-            <span class="font-display text-4xl font-black opacity-20">${pos.label}</span>
+            <span class="font-display text-4xl font-black opacity-20">${rankIdx + 1}</span>
           </div>
           <div class="absolute bottom-0 left-0 right-0 h-1" style="background: ${b.color}"></div>
         </div>
@@ -1057,9 +1074,8 @@ function renderRadarChart() {
 
 function renderDonutCharts() {
   const visible = getVisibleBarbers();
-  ['Lucas', 'Jonathan', 'Tariki'].forEach((name, i) => {
-    const b = BARBERS[i];
-    const canvasId = 'donut' + name;
+  BARBERS.forEach(b => {
+    const canvasId = 'donut' + DATA[b].name;
     const wrapper = document.getElementById(canvasId).closest('.flex.flex-col');
     if (wrapper) wrapper.style.display = visible.includes(b) ? '' : 'none';
     if (!visible.includes(b)) { if (charts[canvasId]) { charts[canvasId].destroy(); delete charts[canvasId]; } return; }
@@ -1644,7 +1660,7 @@ function renderNoShow() {
         <h3 class="text-sm font-bold text-red-400">Impacto No-Show</h3>
         <span class="ml-auto text-lg font-bold text-red-400 stat-number" data-countup="${totalNoShow}" data-prefix="R$ " data-decimals="2">R$ 0,00</span>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
         ${barberNoShow.map(b => {
           const pct = b.total > 0 ? (b.noShow / b.total * 100).toFixed(1) : 0;
           const barPct = maxNoShow > 0 ? (b.noShow / maxNoShow * 100) : 0;
@@ -2194,7 +2210,7 @@ function renderAnnualSummary() {
   const medals = ['\u{1F947}', '\u{1F948}', '\u{1F949}'];
 
   content.innerHTML = `
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
       ${annualData.map((b, i) => `
         <div class="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
           <div class="flex items-center gap-2 mb-3">

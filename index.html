@@ -244,7 +244,7 @@
     }
     @media (max-width: 768px) {
       .grid.lg\:grid-cols-2 { grid-template-columns: 1fr; }
-      .grid.lg\:grid-cols-3 { grid-template-columns: 1fr; }
+      .grid.lg\:grid-cols-3 { grid-template-columns: 1fr 1fr; }
       .grid.lg\:grid-cols-4 { grid-template-columns: 1fr 1fr; }
       #donut-grid > div canvas { max-height: 160px; }
       #comparison-table { font-size: 11px; }
@@ -572,8 +572,9 @@ const DATA = {
     name: 'Túlio',
     color: '#a855f7',
     colorLight: '#c084fc',
-    colorBg: 'rgba(168,85,247,0.15)'
-    // Sem meses fixos: entrou em Agosto/2026, dados carregados ao vivo da planilha.
+    colorBg: 'rgba(168,85,247,0.15)',
+    startMonth: 'ago' // entrou em Agosto/2026 — só aparece de ago em diante
+    // Sem meses fixos: dados carregados ao vivo da planilha.
     // Offline / antes do fetch, getMonthData() retorna R$ 0.
   }
 };
@@ -852,6 +853,7 @@ function detectAvailableMonths() {
 // ========== MONTH TOGGLE ==========
 function setMonth(m) {
   currentMonth = m;
+  if (activeBarber && !isBarberActive(activeBarber, m)) activeBarber = null;
   document.querySelectorAll('.month-btn').forEach(b => b.classList.remove('active'));
   const btn = document.getElementById('btn-' + m);
   if (btn) btn.classList.add('active');
@@ -885,39 +887,54 @@ function setBarberFilter(b) {
   }, 200);
 }
 
+// Barbeiros com startMonth (ex.: Túlio, ago/2026) só contam a partir desse mês.
+// Em 'all' entram normalmente (têm dados dentro do ano).
+function isBarberActive(b, month = currentMonth) {
+  const start = DATA[b].startMonth;
+  if (!start || month === 'all') return true;
+  return MONTH_ORDER.indexOf(month) >= MONTH_ORDER.indexOf(start);
+}
+
+function getActiveBarbers(month = currentMonth) {
+  return BARBERS.filter(b => isBarberActive(b, month));
+}
+
 function getVisibleBarbers() {
-  return activeBarber ? [activeBarber] : BARBERS;
+  const active = getActiveBarbers();
+  return activeBarber && active.includes(activeBarber) ? [activeBarber] : active;
 }
 
 // ========== RENDER FUNCTIONS ==========
 function renderKPIs() {
   const section = document.getElementById('kpi-section');
-  const totals = BARBERS.map(b => ({ name: DATA[b].name, color: DATA[b].color, total: getMonthData(b, currentMonth).totalBruto, liquido: getMonthData(b, currentMonth).totalLiquido }));
+  const active = getActiveBarbers();
+  const totals = active.map(b => ({ name: DATA[b].name, color: DATA[b].color, total: getMonthData(b, currentMonth).totalBruto, liquido: getMonthData(b, currentMonth).totalLiquido }));
   const grandTotal = totals.reduce((s, t) => s + t.total, 0);
   const best = totals.reduce((a, b) => a.total > b.total ? a : b);
-  const avgTicket = BARBERS.map(b => {
+  const avgTicket = active.map(b => {
     const d = getMonthData(b, currentMonth);
     const numCortes = d.servicos.corte / 65;
     return d.totalServicos > 0 ? (d.totalServicos / Math.max(numCortes, 1)) : 0;
   });
-  const totalAss = BARBERS.reduce((s, b) => s + getMonthData(b, currentMonth).assinaturas, 0);
+  const totalAss = active.reduce((s, b) => s + getMonthData(b, currentMonth).assinaturas, 0);
 
   // Variation calculation
   const prevKey = getPrevMonth(currentMonth);
   let varTotal = null, varAss = null, varAvg = null;
   if (prevKey) {
-    const prevGrand = BARBERS.reduce((s, b) => s + (DATA[b][prevKey]?.totalBruto || 0), 0);
-    const prevAss = BARBERS.reduce((s, b) => s + (DATA[b][prevKey]?.assinaturas || 0), 0);
+    const prevActive = getActiveBarbers(prevKey);
+    const prevGrand = prevActive.reduce((s, b) => s + (DATA[b][prevKey]?.totalBruto || 0), 0);
+    const prevAss = prevActive.reduce((s, b) => s + (DATA[b][prevKey]?.assinaturas || 0), 0);
     varTotal = calcVariation(grandTotal, prevGrand);
     varAss = calcVariation(totalAss, prevAss);
-    varAvg = calcVariation(grandTotal / 3, prevGrand / 3);
+    varAvg = calcVariation(grandTotal / active.length, prevGrand / prevActive.length);
   }
 
   const kpis = [
     { label: 'Receita Total Bruta', tooltip: 'Soma da receita bruta de todos os barbeiros (serviços + produtos + assinaturas + outros)', value: grandTotal, isNum: true, variation: varTotal, icon: '<path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>', gradient: 'from-purple-600 to-indigo-600' },
     { label: 'Barbeiro com Maior Faturamento', tooltip: 'Barbeiro com maior receita bruta no período selecionado', value: best.name, sub: best.total, subIsNum: true, icon: '<path d="M5 3l3.5 6L12 3l3.5 6L19 3v10c0 2-2 4-7 4s-7-2-7-4V3z"/>', gradient: 'from-yellow-600 to-orange-600' },
     { label: 'Total Assinaturas', tooltip: 'Receita total de planos de assinatura (barba + corte + combo)', value: totalAss, isNum: true, variation: varAss, icon: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8m13 0v6m-3-3h6"/>', gradient: 'from-green-600 to-emerald-600' },
-    { label: 'Receita Média/Barbeiro', tooltip: 'Receita bruta total dividida pelo numero de barbeiros (3)', value: grandTotal / 3, isNum: true, variation: varAvg, icon: '<path d="M9 7h6m0 10v-3m-3 3v-6m-3 6V7M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/>', gradient: 'from-blue-600 to-cyan-600' }
+    { label: 'Receita Média/Barbeiro', tooltip: `Receita bruta total dividida pelo numero de barbeiros (${active.length})`, value: grandTotal / active.length, isNum: true, variation: varAvg, icon: '<path d="M9 7h6m0 10v-3m-3 3v-6m-3 6V7M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/>', gradient: 'from-blue-600 to-cyan-600' }
   ];
 
   section.innerHTML = kpis.map((kpi, i) => `
@@ -1074,6 +1091,8 @@ function renderRadarChart() {
 
 function renderDonutCharts() {
   const visible = getVisibleBarbers();
+  const grid = document.getElementById('donut-grid');
+  if (grid) grid.className = `grid grid-cols-2 ${getActiveBarbers().length >= 4 ? '' : 'lg:grid-cols-3'} gap-4`.replace('  ', ' ');
   BARBERS.forEach(b => {
     const canvasId = 'donut' + DATA[b].name;
     const wrapper = document.getElementById(canvasId).closest('.flex.flex-col');
@@ -1271,11 +1290,11 @@ function calcWinner(allData, month) {
 
   // Count points (only main metrics)
   const scores = {};
-  BARBERS.forEach(b => scores[b] = 0);
+  allData.forEach(d => scores[d.key] = 0);
   Object.values(bests).forEach(b => { if (b) scores[b]++; });
 
   // Sort by score descending
-  const ranked = BARBERS.map(b => ({ key: b, score: scores[b] })).sort((a, b) => b.score - a.score);
+  const ranked = allData.map(d => ({ key: d.key, score: scores[d.key] })).sort((a, b) => b.score - a.score);
 
   // Check for tie at top
   const topScore = ranked[0].score;
@@ -1320,7 +1339,7 @@ function calcWinner(allData, month) {
   // Compute positional ranking per metric (1o, 2o, 3o) — ties share same rank
   const rankings = {};
   REPORT_METRICS.forEach(m => {
-    const sorted = BARBERS.map(b => ({ key: b, val: allData.find(d => d.key === b).report[m.key] || 0 }))
+    const sorted = allData.map(d => ({ key: d.key, val: d.report[m.key] || 0 }))
       .sort((a, b) => b.val - a.val);
     rankings[m.key] = {};
     let rank = 1;
@@ -1337,7 +1356,9 @@ function calcWinner(allData, month) {
 // ========== REPORT SECTION ==========
 function renderReport() {
   const section = document.getElementById('report-section');
-  const allData = BARBERS.map(b => ({ key: b, ...DATA[b], report: calcReport(b, currentMonth) }));
+  const active = getActiveBarbers();
+  section.className = `grid grid-cols-1 lg:grid-cols-2 ${active.length >= 4 ? 'xl:grid-cols-4' : 'xl:grid-cols-3'} gap-4`;
+  const allData = active.map(b => ({ key: b, ...DATA[b], report: calcReport(b, currentMonth) }));
 
   const result = calcWinner(allData, currentMonth);
   const { scores, winner, tiebreakUsed, bests, rankings, isTied } = result;
@@ -1435,7 +1456,7 @@ function renderScoreboard(allData, scores, winner, tiebreakUsed, isTied) {
   const mainCount = REPORT_METRICS.filter(m => getMetricRole(m.key, currentMonth) === 'main').length;
 
   // Sort barbers by score descending for the scoreboard
-  const sorted = BARBERS.map(b => ({ key: b, ...DATA[b], score: scores[b] })).sort((a, b) => b.score - a.score);
+  const sorted = Object.keys(scores).map(b => ({ key: b, ...DATA[b], score: scores[b] })).sort((a, b) => b.score - a.score);
 
   sb.innerHTML = `
     <!-- Barbeiro Destaque Card -->
@@ -1573,7 +1594,7 @@ function renderTopServices() {
 // ========== EXECUTIVE SUMMARY ==========
 function renderExecutiveSummary() {
   const container = document.getElementById('executive-summary');
-  const allData = BARBERS.map(b => ({ key: b, ...DATA[b], report: calcReport(b, currentMonth) }));
+  const allData = getActiveBarbers().map(b => ({ key: b, ...DATA[b], report: calcReport(b, currentMonth) }));
   const result = calcWinner(allData, currentMonth);
   const { scores, winner, isTied, tiebreakUsed } = result;
   const winnerData = DATA[winner];
@@ -1591,9 +1612,14 @@ function renderExecutiveSummary() {
   const prevMonthKey = getPrevMonth(currentMonth);
   if (prevMonthKey) {
     const prevLabel = MONTH_TABS[prevMonthKey] || prevMonthKey;
-    BARBERS.forEach(b => {
-      const prev = DATA[b][prevMonthKey]?.totalBruto || 0;
+    getActiveBarbers().forEach(b => {
       const curr = getMonthData(b, currentMonth).totalBruto;
+      // Recém-chegado: sem mês anterior para comparar — mostra estreia em vez de "R$ 0 → x"
+      if (!isBarberActive(b, prevMonthKey)) {
+        bullets.push(`<strong style="color:${DATA[b].colorLight}">${DATA[b].name}</strong>: estreou na equipe em ${MONTH_TABS[currentMonth] || currentMonth} com ${fmt(curr)}.`);
+        return;
+      }
+      const prev = DATA[b][prevMonthKey]?.totalBruto || 0;
       const pct = prev > 0 ? ((curr - prev) / prev * 100).toFixed(0) : 0;
       const arrow = pct >= 0 ? '↑' : '↓';
       const color = pct >= 0 ? '#34d399' : '#f87171';
@@ -1604,7 +1630,7 @@ function renderExecutiveSummary() {
   // 3. Top service
   const serviceTotals = {};
   Object.keys(SERVICE_LABELS).forEach(k => {
-    serviceTotals[k] = BARBERS.reduce((s, b) => s + getMonthData(b, currentMonth).servicos[k], 0);
+    serviceTotals[k] = getActiveBarbers().reduce((s, b) => s + getMonthData(b, currentMonth).servicos[k], 0);
   });
   const topService = Object.entries(serviceTotals).sort((a, b) => b[1] - a[1])[0];
   if (topService) {
@@ -1633,7 +1659,7 @@ function renderExecutiveSummary() {
 // ========== NO-SHOW SECTION ==========
 function renderNoShow() {
   const container = document.getElementById('noshow-section');
-  const barberNoShow = BARBERS.map(b => {
+  const barberNoShow = getActiveBarbers().map(b => {
     const d = getMonthData(b, currentMonth);
     return { key: b, ...DATA[b], noShow: d.noShow, total: d.totalBruto };
   });
@@ -1660,7 +1686,7 @@ function renderNoShow() {
         <h3 class="text-sm font-bold text-red-400">Impacto No-Show</h3>
         <span class="ml-auto text-lg font-bold text-red-400 stat-number" data-countup="${totalNoShow}" data-prefix="R$ " data-decimals="2">R$ 0,00</span>
       </div>
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="grid grid-cols-2 ${barberNoShow.length >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-3">
         ${barberNoShow.map(b => {
           const pct = b.total > 0 ? (b.noShow / b.total * 100).toFixed(1) : 0;
           const barPct = maxNoShow > 0 ? (b.noShow / maxNoShow * 100) : 0;
@@ -1717,6 +1743,7 @@ function renderRevenueSplit() {
 // ========== COMMISSION SECTION ==========
 function renderCommission() {
   const container = document.getElementById('commission-section');
+  container.className = `grid grid-cols-1 sm:grid-cols-2 ${getActiveBarbers().length >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`;
   container.innerHTML = getVisibleBarbers().map(b => {
     const d = getMonthData(b, currentMonth);
     const items = [
@@ -2142,7 +2169,7 @@ function showToast(message) {
 function renderBarberFilter() {
   const container = document.getElementById('barber-filter');
   if (!container) return;
-  container.innerHTML = BARBERS.map(b => {
+  container.innerHTML = getActiveBarbers().map(b => {
     const isActive = activeBarber === null || activeBarber === b;
     return `<button onclick="setBarberFilter('${b}')" class="barber-chip ${isActive ? 'active' : ''} flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold" style="color:${DATA[b].colorLight};${isActive ? 'background:' + DATA[b].color + '20' : ''}">
       <span class="w-2 h-2 rounded-full" style="background:${DATA[b].color}"></span>${DATA[b].name}
@@ -2157,7 +2184,7 @@ function renderHistoryRanking() {
   if (availableMonths.length === 0) { container.innerHTML = '<p class="text-sm text-gray-500">Sem dados ainda.</p>'; return; }
 
   const rows = availableMonths.map(m => {
-    const ranked = BARBERS.map(b => ({
+    const ranked = getActiveBarbers(m).map(b => ({
       key: b, name: DATA[b].name, color: DATA[b].color, colorLight: DATA[b].colorLight,
       total: (DATA[b][m]?.totalBruto || 0)
     })).sort((a, b) => b.total - a.total);

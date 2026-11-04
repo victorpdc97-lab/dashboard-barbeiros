@@ -513,6 +513,7 @@ const DATA = {
     color: '#f59e0b',
     colorLight: '#fbbf24',
     colorBg: 'rgba(245,158,11,0.15)',
+    endMonth: 'ago', // saiu da equipe após Agosto/2026 — some a partir de set
     jan: {
       servicos: { corte: 1300, barba: 450, acabamento: 0, escova: 0, sobNavalha: 258, sobPinca: 0, hidrCabelo: 266, hidrBarba: 70, depilacao: 22.5, pigmentacao: 27, selagem: 270, relaxamento: 0, tintura: 0, luzes: 0, platinado: 0, blackMask: 125 },
       totalServicos: 2789, comissaoServicos: 1394,
@@ -887,12 +888,16 @@ function setBarberFilter(b) {
   }, 200);
 }
 
-// Barbeiros com startMonth (ex.: Túlio, ago/2026) só contam a partir desse mês.
+// Barbeiros com startMonth (ex.: Túlio, ago/2026) só contam a partir desse mês;
+// com endMonth (ex.: Jonathan, ago/2026) contam até esse mês, inclusive.
 // Em 'all' entram normalmente (têm dados dentro do ano).
 function isBarberActive(b, month = currentMonth) {
-  const start = DATA[b].startMonth;
-  if (!start || month === 'all') return true;
-  return MONTH_ORDER.indexOf(month) >= MONTH_ORDER.indexOf(start);
+  const { startMonth: start, endMonth: end } = DATA[b];
+  if (month === 'all') return true;
+  const idx = MONTH_ORDER.indexOf(month);
+  if (start && idx < MONTH_ORDER.indexOf(start)) return false;
+  if (end && idx > MONTH_ORDER.indexOf(end)) return false;
+  return true;
 }
 
 function getActiveBarbers(month = currentMonth) {
@@ -2052,6 +2057,7 @@ async function loadLiveData() {
     if (!sheetId) continue;
 
     for (const monthKey of detectedMonths) {
+      if (!isBarberActive(barber, monthKey)) continue; // fora do período na equipe
       try {
         const table = await fetchSheetJSONP(sheetId, MONTH_TABS_SHEET[monthKey]);
         // Verify correct tab

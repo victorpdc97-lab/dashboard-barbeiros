@@ -108,6 +108,7 @@
     .podium-2 { animation: float 3s ease-in-out infinite 0.5s; }
     .podium-3 { animation: float 3s ease-in-out infinite 1s; }
     .podium-4 { animation: float 3s ease-in-out infinite 1.5s; }
+    .podium-5 { animation: float 3s ease-in-out infinite 2s; }
     @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
     /* 1. Scroll-Reveal: elements fade up when entering viewport */
@@ -151,7 +152,7 @@
     @media (prefers-reduced-motion: reduce) {
       .reveal, .reveal.visible { animation: none !important; opacity: 1 !important; transform: none !important; }
       .bar-animate { transition: none !important; }
-      .podium-1, .podium-2, .podium-3, .podium-4 { animation: none !important; }
+      .podium-1, .podium-2, .podium-3, .podium-4, .podium-5 { animation: none !important; }
       .winner-glow { animation: none !important; }
       .live-dot { animation: none !important; }
       .skeleton { animation: none !important; }
@@ -171,6 +172,7 @@
     .report-card.jonathan::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
     .report-card.tariki::before { background: linear-gradient(90deg, #10b981, #34d399); }
     .report-card.tulio::before { background: linear-gradient(90deg, #a855f7, #c084fc); }
+    .report-card.fabio::before { background: linear-gradient(90deg, #f43f5e, #fb7185); }
     .report-metric { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-row); }
     .report-metric:last-child { border-bottom: none; }
     .report-metric .metric-bar { height: 4px; border-radius: 2px; }
@@ -383,6 +385,10 @@
             <div style="position:relative;width:100%;max-height:160px"><canvas id="donutTúlio"></canvas></div>
             <p class="text-xs text-purple-400 mt-2 font-medium">Túlio</p>
           </div>
+          <div class="flex flex-col items-center justify-center overflow-hidden">
+            <div style="position:relative;width:100%;max-height:160px"><canvas id="donutFábio"></canvas></div>
+            <p class="text-xs text-rose-400 mt-2 font-medium">Fábio</p>
+          </div>
         </div>
       </section>
     </div>
@@ -459,7 +465,7 @@
       <div id="annual-summary-content"></div>
       <div class="mt-6">
         <h3 class="text-sm font-semibold text-gray-400 mb-3">Evolução Mensal</h3>
-        <div id="annual-sparklines" class="grid grid-cols-2 lg:grid-cols-4 gap-4"></div>
+        <div id="annual-sparklines" class="grid grid-cols-2 lg:grid-cols-5 xl:grid-cols-5 gap-4"></div>
       </div>
     </section>
 
@@ -577,6 +583,15 @@ const DATA = {
     startMonth: 'ago' // entrou em Agosto/2026 — só aparece de ago em diante
     // Sem meses fixos: dados carregados ao vivo da planilha.
     // Offline / antes do fetch, getMonthData() retorna R$ 0.
+  },
+  fabio: {
+    name: 'Fábio',
+    color: '#f43f5e',
+    colorLight: '#fb7185',
+    colorBg: 'rgba(244,63,94,0.15)',
+    startMonth: 'nov' // entrou em Novembro/2026 — só aparece de nov em diante
+    // Sem meses fixos: a planilha só tem a aba de Novembro, lida ao vivo.
+    // Offline / antes do fetch, getMonthData() retorna R$ 0.
   }
 };
 
@@ -586,6 +601,7 @@ const SHEET_IDS = {
   jonathan: '1UbEWqHgLmZKjX26Hc7SdC10EBaB_o5vy50zrjOmgiRk',
   tariki: '1MrcQDVRNtTn8kSaC4rotWdu8FxGk-qbcMGabrWsqcPc',
   tulio: '1qG3naup4LTTH94-JQ6X3xrfafGwdJdC4hK2W0n0x8tQ',
+  fabio: '1kLiLyrFKUaxBWZZAvvmiIOjCsiacq_eZ_-Cy2PSHnS4',
 };
 
 const MONTH_ORDER = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
@@ -679,9 +695,9 @@ function calcReport(barber, month) {
   };
 }
 
-// Túlio fica no fim: BARBERS[0] (Lucas) é usado no init para detectar
+// Fábio fica no fim: BARBERS[0] (Lucas) é usado no init para detectar
 // quais meses existem nas planilhas — manter o detector com histórico completo.
-const BARBERS = ['lucas', 'jonathan', 'tariki', 'tulio'];
+const BARBERS = ['lucas', 'jonathan', 'tariki', 'tulio', 'fabio'];
 const SERVICE_LABELS = {
   corte: 'Corte', barba: 'Barba', acabamento: 'Acabamento', escova: 'Escova',
   sobNavalha: 'Sob. Navalha', sobPinca: 'Sob. Pinça', hidrCabelo: 'Hidr. Cabelo',
@@ -1362,7 +1378,7 @@ function calcWinner(allData, month) {
 function renderReport() {
   const section = document.getElementById('report-section');
   const active = getActiveBarbers();
-  section.className = `grid grid-cols-1 lg:grid-cols-2 ${active.length >= 4 ? 'xl:grid-cols-4' : 'xl:grid-cols-3'} gap-4`;
+  section.className = `grid grid-cols-1 lg:grid-cols-2 ${active.length >= 5 ? 'xl:grid-cols-5' : active.length >= 4 ? 'xl:grid-cols-4' : 'xl:grid-cols-3'} gap-4`;
   const allData = active.map(b => ({ key: b, ...DATA[b], report: calcReport(b, currentMonth) }));
 
   const result = calcWinner(allData, currentMonth);
@@ -1691,7 +1707,7 @@ function renderNoShow() {
         <h3 class="text-sm font-bold text-red-400">Impacto No-Show</h3>
         <span class="ml-auto text-lg font-bold text-red-400 stat-number" data-countup="${totalNoShow}" data-prefix="R$ " data-decimals="2">R$ 0,00</span>
       </div>
-      <div class="grid grid-cols-2 ${barberNoShow.length >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-3">
+      <div class="grid grid-cols-2 ${barberNoShow.length >= 5 ? 'lg:grid-cols-5' : barberNoShow.length >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-3">
         ${barberNoShow.map(b => {
           const pct = b.total > 0 ? (b.noShow / b.total * 100).toFixed(1) : 0;
           const barPct = maxNoShow > 0 ? (b.noShow / maxNoShow * 100) : 0;
@@ -1748,7 +1764,7 @@ function renderRevenueSplit() {
 // ========== COMMISSION SECTION ==========
 function renderCommission() {
   const container = document.getElementById('commission-section');
-  container.className = `grid grid-cols-1 sm:grid-cols-2 ${getActiveBarbers().length >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`;
+  container.className = `grid grid-cols-1 sm:grid-cols-2 ${getActiveBarbers().length >= 5 ? 'lg:grid-cols-5' : getActiveBarbers().length >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`;
   container.innerHTML = getVisibleBarbers().map(b => {
     const d = getMonthData(b, currentMonth);
     const items = [
@@ -2243,7 +2259,7 @@ function renderAnnualSummary() {
   const medals = ['\u{1F947}', '\u{1F948}', '\u{1F949}'];
 
   content.innerHTML = `
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
       ${annualData.map((b, i) => `
         <div class="p-4 rounded-xl border border-white/5 bg-white/[0.02]">
           <div class="flex items-center gap-2 mb-3">
